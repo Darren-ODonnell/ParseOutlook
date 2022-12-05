@@ -21,7 +21,7 @@ public class Outlook {
     public static void main(String[] args) {
         // spss first
         type = SPSS;
-        String path = "C:\\Users\\liam\\OneDrive - Technological University Dublin\\Tests Admin Automate\\";
+        String path = "C:\\Users\\liam.odonnell\\OneDrive - Technological University Dublin\\Tests Admin Automate\\";
         String spssT1file = "SPSS T1 email.pst";
         String spssT2file = "SPSS T2 email.pst";
         String excelT1file = "Excel T1 email.pst";

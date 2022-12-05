@@ -1,23 +1,34 @@
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.*;
+
+import java.awt.*;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.io.FileInputStream;
 import java.util.List;
+
+import org.apache.poi.ss.util.CellReference;
+import org.apache.poi.xssf.usermodel.XSSFAnchor;
+import org.apache.poi.xssf.usermodel.XSSFName;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class Excel  {
 
+
+
+
     public static void main(String[]args) {
-        String path = "C:\\Users\\liam\\OneDrive - Technological University Dublin\\Tests Admin Automate\\";
+
+        String path = "C:\\Users\\liam.odonnell\\Desktop\\OneDrive - Technological University Dublin\\Tests Admin Automate\\";
         String excelFile = "classlist.xlsx";
         List<ClasslistRow> classlist = getClasslist(excelFile);
     }
 
     public static List<ClasslistRow> getClasslist(String filename) {
-        String path = "C:\\Users\\liam\\OneDrive - Technological University Dublin\\Tests Admin Automate\\";
+        String path = "C:\\Users\\liam.odonnell\\Desktop\\OneDrive - Technological University Dublin\\Tests Admin Automate\\";
         String excelFile = "classlist.xlsx";
 
         List<ClasslistRow> classlist = new ArrayList<>();
@@ -27,6 +38,48 @@ public class Excel  {
             //creating Workbook instance that refers to .xlsx file
             XSSFWorkbook wb = new XSSFWorkbook(fis);
             XSSFSheet sheet = wb.getSheet("classlist");
+
+            String name = "subset";
+
+            XSSFName namedRange = wb.getName(name);
+
+            String formula =  namedRange.getRefersToFormula();
+
+//            System.out.println("SheetName: " + sheet.getSheetName());
+//            System.out.println("RelationId: requires param");
+//            System.out.println("ActiveCell: " + sheet.getActiveCell());
+//            System.out.println("CellComment - requires parameter: "); // + sheet.getCellComment("test"));
+//            System.out.println("columnBreaks: " + sheet.getColumnBreaks());
+//            System.out.println("CTWorksheet: " + sheet.getCTWorksheet());
+//            System.out.println("Dimension: " + sheet.getDimension());
+//            System.out.println("LastRowNumber: " + sheet.getLastRowNum());
+//            System.out.println("LeftCol: " + sheet.getLeftCol());
+//            System.out.println("PhysicalNumberOfRows: " + sheet.getPhysicalNumberOfRows());
+//            System.out.println("TopRow: " + sheet.getTopRow());
+
+
+            System.out.println("getSheetIndex:      " + namedRange.getSheetIndex());
+            System.out.println("getNameName :       "+namedRange.getNameName());
+            System.out.println("getSheetName:       "+namedRange.getSheetName());
+            System.out.println("Formula:            "+namedRange.getRefersToFormula());
+            System.out.println("getFunction:        "+namedRange.getFunction());
+            System.out.println("getComment:         "+namedRange.getComment());
+            System.out.println("getFunctionGroupId: "+namedRange.getFunctionGroupId());
+            System.out.println("getClass:           "+namedRange.getClass());
+
+
+//            getSheetIndex:      -1
+//            getNameName :       studentlist
+//            getSheetName:       Classlist
+//            getRefersToFormula: Classlist!$A$1:$D$105
+//            getFunction:        false
+//            getComment:         null
+//            getFunctionGroupId: 0
+//            getClass:           class org.apache.poi.xssf.usermodel.XSSFName
+
+
+
+
             for (Row row : sheet) {
                 classlist.add(getRow(row));
             }
@@ -41,40 +94,48 @@ public class Excel  {
         // get the 4 columns
         ClasslistRow listRow = new ClasslistRow();
 
-        Iterator<Cell> cellIterator = row.cellIterator();//iterating over each column
-        Cell cell = cellIterator.next();
-        listRow.sno = cell.getStringCellValue();
-        // firct column
-        cellIterator.hasNext();
-        cell = cellIterator.next();
-        String snfn = cell.getStringCellValue();
-        listRow.surnameFirtsname = snfn.replace(".","");
-        // second column
-        cellIterator.hasNext();
-        cell = cellIterator.next();
-        listRow.fullname = cell.getStringCellValue();
-        // third column
-        cellIterator.hasNext();
-        cell = cellIterator.next();
-        listRow.fullname1 = cell.getStringCellValue();
 
+        listRow.sno = row.getCell(0).getStringCellValue();
+        // get rid of trailing period!
+        listRow.surnameFirtsname = row.getCell(1).getStringCellValue().replace(".","");
+        listRow.fullname = row.getCell(2).getStringCellValue();
+        listRow.fullname1 = row.getCell(3).getStringCellValue();
+
+        // tidyup surname/firstname values
         String[] parts = listRow.surnameFirtsname.split(",",2);
-        String sn = parts[0];
-        String fn = parts[1];
-
-        sn = sn.strip();
-        fn = fn.strip();
-
-        fn = fn.replace(".","");
+        String sn = parts[0].strip();
+        String fn = parts[1].strip().replace(".","");
 
         listRow.surname = sn;
         listRow.firstname = fn;
 
-        System.out.println(listRow.toString());
+        System.out.println(listRow);
 
         return listRow;
 
     }
+
+    public String ReadCellData(int vRow,int vColumn)  {
+        String value = null; //variable for storing the cell value
+        Workbook wb = null; //initialize Workbook null
+        try {
+            //reading data from a file in the form of bytes
+            FileInputStream fis = new FileInputStream("C:\\demo\\EmployeeData.xlsx");
+            //constructs an XSSFWorkbook object,by buffering the whole stream into the memory
+            wb = new XSSFWorkbook(fis);
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        Sheet sheet = wb.getSheetAt(0);     // getting the XSSFSheet object at given index
+        Row row = sheet.getRow(vRow);         // returns the logical row
+        Cell cell = row.getCell(vColumn);     // getting the cell representing the given column
+        value = cell.getStringCellValue();    // getting cell value
+        return value;                         // returns the cell value
+    }
+
+
+
+
 
 
 
