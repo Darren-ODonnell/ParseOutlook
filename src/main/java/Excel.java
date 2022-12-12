@@ -2,6 +2,10 @@ import org.apache.poi.ss.usermodel.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.io.FileInputStream;
 import java.util.List;
@@ -10,25 +14,52 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class Excel  {
+    final static boolean HOME = true;
+    final static boolean WORK = false;
 
-    static  String path = "C:\\Users\\liam.odonnell\\Desktop\\OneDrive - Technological University Dublin\\Tests Admin Automate\\";
 
-    static String resultsFile = "C:\\Users\\liam.odonnell\\Desktop\\OneDrive - Technological University Dublin\\Coursework\\DT341-2 Version1 Sign-in details Anew2.xlsm";
+    static String basePathHome = "C:\\Users\\liam\\";
+    static  String basePathWork = "C:\\Users\\liam.odonnell\\Desktop\\";
+    static String testFilePath = "OneDrive - Technological University Dublin\\Tests Admin Automate\\";
+
+    static String resultFilePath = testFilePath + "Coursework\\";
+    static String results = "DT341-2 Version1 Sign-in details Anew2.xlsm";
+    static String resultsFile = resultFilePath + results;
     static String resultsFileSheet = "Attendance";
     static String resultsSnoColumn = "";
     static String resultsAttendanceColumnSPSS = "";
     static String resultsAttendanceColumnEXCEL = ""; // or always SPSS + 2
+
     static String excelFile = "classlist.xlsx";
 
-    public static void main(String[]args) {
 
-        List<ClasslistRow> classlist = getClasslist(excelFile);
-        classlist = getAttendance(classlist, excelFile);
+
+    public static String getBasePath() {
+
+        String ip = getIpAddress();
+        boolean locn = ip.contains("192.168");
+
+        return (locn) ? basePathHome : basePathWork;
+    }
+
+    public static void main(String[]args) {
+        String basePath = getBasePath();
+
+        List<ClasslistRow> classlist = getClasslist(basePath + excelFile);
+        classlist = addAttendance(classlist, excelFile);
 
         // write to main results file for specific test sheet
     }
+    public static String getIpAddress() {
+        try (final DatagramSocket datagramSocket = new DatagramSocket()) {
+            datagramSocket.connect(InetAddress.getByName("8.8.8.8"), 12345);
+            return datagramSocket.getLocalAddress().getHostAddress();
+        } catch (UnknownHostException | SocketException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-    private static List<ClasslistRow> getAttendance(List<ClasslistRow> classlist, String excelFile) {
+    private static List<ClasslistRow> addAttendance(List<ClasslistRow> classlist, String excelFile) {
         // read in columns from excel
         // merge these with classlist
         // done

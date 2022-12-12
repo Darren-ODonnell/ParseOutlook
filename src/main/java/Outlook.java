@@ -24,8 +24,6 @@ public class Outlook {
 
     HashMap<String,SpssResult>  results = new HashMap<>();
 
-
-
     public static void main(String[] args) {
         // spss first
         String path = "C:\\Users\\liam.odonnell\\Desktop\\OneDrive - Technological University Dublin\\Tests Admin Automate\\";
@@ -37,14 +35,12 @@ public class Outlook {
         type = SPSS;
         new Outlook(path + spssT2file);
 
-
-
 //        new Main(path + spssT1file);
 
         // now excel
-        type = EXCEL;
-        new Outlook(path + excelT1file);
-
+//        type = EXCEL;
+//        new Outlook(path + excelT1file);
+//        System.out.println("Here");
     }
 
     public Outlook(String filename) {
@@ -73,7 +69,7 @@ public class Outlook {
         if (folder.getContentCount() > 0) {
             PSTMessage email = (PSTMessage)folder.getNextChild();
             while (email != null) {
-                System.out.println("Email: "+email.getNumberOfAttachments());
+                   System.out.println("Email: "+email.getNumberOfAttachments());
                 addSubmission(email);
 
                 if(email.getNumberOfAttachments() == 2) {
@@ -108,7 +104,7 @@ public class Outlook {
 
         if (email.getNumberOfAttachments() > 0) {
             files = getFiles(email);
-            if (type == SPSS) {
+            if (Main.type == Main.SPSS) {
                 sav = getFor("sav", files);
                 spv = getFor("spv", files);
                 snoSav = snoExists("sav",studentNo, files);
