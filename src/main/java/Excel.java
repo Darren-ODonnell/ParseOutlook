@@ -19,13 +19,14 @@ public class Excel  {
 
 
     static String basePathHome = "C:\\Users\\liam\\";
-    static  String basePathWork = "C:\\Users\\liam.odonnell\\Desktop\\";
+    static String basePathWork = "C:\\Users\\liam.odonnell\\Desktop\\";
     static String testFilePath = "OneDrive - Technological University Dublin\\Tests Admin Automate\\";
-
     static String resultFilePath = testFilePath + "Coursework\\";
-    static String results = "DT341-2 Version1 Sign-in details Anew2.xlsm";
-    static String resultsFile = resultFilePath + results;
-    static String resultsFileSheet = "Attendance";
+
+    static String excelWb = "classlist.xlsx";
+    static String resultsWb = "DT341-2 Version1 Sign-in details Anew2.xlsm";
+
+    static String resultsSheet = "Attendance";
     static String resultsSnoColumn = "";
     static String resultsAttendanceColumnSPSS = "";
     static String resultsAttendanceColumnEXCEL = ""; // or always SPSS + 2
@@ -63,14 +64,14 @@ public class Excel  {
         // read in columns from excel
         // merge these with classlist
         // done
-
+        List<ClasslistRow> classlist = new ArrayList<>();
+        try {
 
         return classlist;
     }
 
     public static List<ClasslistRow> getClasslist(String filename) {
-        String path = "C:\\Users\\liam.odonnell\\Desktop\\OneDrive - Technological University Dublin\\Tests Admin Automate\\";
-        String excelFile = "classlist.xlsx";
+
 
         List<ClasslistRow> classlist = new ArrayList<>();
         try {
