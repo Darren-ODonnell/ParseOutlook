@@ -6,7 +6,7 @@ public class ClasslistRow {
     String fullname;
     String surname;
     String firstname;
-
+    boolean attendance = false;
 
     @Override
     public String toString() {
@@ -17,6 +17,7 @@ public class ClasslistRow {
                 ", fullname='" + fullname + '\'' +
                 ", surname='" + surname + '\'' +
                 ", firstname='" + firstname + '\'' +
+                ", attendance=" + attendance +
                 '}';
     }
 }

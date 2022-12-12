@@ -1,30 +1,39 @@
 import org.apache.poi.ss.usermodel.*;
 
-import java.awt.*;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.io.FileInputStream;
 import java.util.List;
-
-import org.apache.poi.ss.util.CellReference;
-import org.apache.poi.xssf.usermodel.XSSFAnchor;
 import org.apache.poi.xssf.usermodel.XSSFName;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class Excel  {
 
-
-
-
     public static void main(String[]args) {
 
         String path = "C:\\Users\\liam.odonnell\\Desktop\\OneDrive - Technological University Dublin\\Tests Admin Automate\\";
+
+        String resultsFile = "C:\\Users\\liam.odonnell\\Desktop\\OneDrive - Technological University Dublin\\Coursework\\DT341-2 Version1 Sign-in details Anew2.xlsm";
+        String resultsFileSheet = "Attendance";
+        String resultsSnoColumn = "";
+        String resultsAttendanceColumnSPSS = "";
+        String resultsAttendanceColumnEXCEL = ""; // or always SPSS + 2
+
         String excelFile = "classlist.xlsx";
         List<ClasslistRow> classlist = getClasslist(excelFile);
+        classlist = getAttendance(classlist, excelFile);
+
+    }
+
+    private static List<ClasslistRow> getAttendance(List<ClasslistRow> classlist, String excelFile) {
+        // read in columns from excel
+        // merge these with classlist
+        // done
+
+
+        return classlist;
     }
 
     public static List<ClasslistRow> getClasslist(String filename) {
@@ -57,7 +66,6 @@ public class Excel  {
 //            System.out.println("PhysicalNumberOfRows: " + sheet.getPhysicalNumberOfRows());
 //            System.out.println("TopRow: " + sheet.getTopRow());
 
-
             System.out.println("getSheetIndex:      " + namedRange.getSheetIndex());
             System.out.println("getNameName :       "+namedRange.getNameName());
             System.out.println("getSheetName:       "+namedRange.getSheetName());
@@ -67,7 +75,6 @@ public class Excel  {
             System.out.println("getFunctionGroupId: "+namedRange.getFunctionGroupId());
             System.out.println("getClass:           "+namedRange.getClass());
 
-
 //            getSheetIndex:      -1
 //            getNameName :       studentlist
 //            getSheetName:       Classlist
@@ -76,9 +83,6 @@ public class Excel  {
 //            getComment:         null
 //            getFunctionGroupId: 0
 //            getClass:           class org.apache.poi.xssf.usermodel.XSSFName
-
-
-
 
             for (Row row : sheet) {
                 classlist.add(getRow(row));
@@ -93,7 +97,6 @@ public class Excel  {
     public static ClasslistRow getRow(Row row) {
         // get the 4 columns
         ClasslistRow listRow = new ClasslistRow();
-
 
         listRow.sno = row.getCell(0).getStringCellValue();
         // get rid of trailing period!
@@ -134,9 +137,67 @@ public class Excel  {
     }
 
 
+    public Cell getStartCell(String cellStr) {
+        Cell cell = null;
+        return cell;
+    }
 
+    public Cell getEndStart(String cellSAtr) {
+        Cell cell = null;
+        return cell;
+    }
+    class Attendance {
+        String studentNo = "";
+        boolean attendance = false;
+    }
 
+    class Range {
+        String rangeStr="";
+        Cell start;
+        Cell end;
+        int rowIndex;
+        int columnIndex;
 
+        public Range (String range) {
+            String[] parts = range.split("!");
+            Cell startRange = getStartRange(parts[1]);
+            Cell endRange = getEndRange(parts[1]);
+        }
+        public Range (Cell start, Cell end) {
+            this.start = start;
+            this.end = end;
+        }
 
+        private Cell getEndRange(String part) {
+            String[] parts = part.split(":");
+            String start = parts[0];
+            Cell cell = null;
+            return cell;
+        }
+
+        private Cell getStartRange(String part) {
+            String[] parts = part.split(":");
+            String end = parts[1];
+            Cell cell = null;
+            return cell;
+        }
+
+        public Cell getEnd() {
+            return end;
+        }
+
+        public void setEnd(Cell end) {
+            this.end = end;
+        }
+
+        public int getRow(Cell cell) {
+            return cell.getRow().getRowNum();
+
+        }
+        public int getCol(Cell cell) {
+            return cell.getColumnIndex();
+        }
+
+    }
 
 }

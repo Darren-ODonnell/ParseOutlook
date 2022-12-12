@@ -1,7 +1,11 @@
+import Models.Result;
+import Models.SpssResult;
+import Models.Submission;
 import com.pff.PSTException;
 import com.pff.PSTFile;
 import com.pff.PSTFolder;
 import com.pff.PSTMessage;
+import org.openxmlformats.schemas.drawingml.x2006.chart.STSecondPieSizeUShort;
 
 import java.io.IOException;
 import java.sql.Date;
@@ -18,21 +22,29 @@ public class Outlook {
 
     HashMap<String, List<Submission>> submissions = new HashMap<>();
 
+    HashMap<String,SpssResult>  results = new HashMap<>();
+
+
+
     public static void main(String[] args) {
         // spss first
-        type = SPSS;
-        String path = "C:\\Users\\liam.odonnell\\OneDrive - Technological University Dublin\\Tests Admin Automate\\";
+        String path = "C:\\Users\\liam.odonnell\\Desktop\\OneDrive - Technological University Dublin\\Tests Admin Automate\\";
         String spssT1file = "SPSS T1 email.pst";
         String spssT2file = "SPSS T2 email.pst";
         String excelT1file = "Excel T1 email.pst";
         String excelT2file = "Excel T2 email.pst";
 
+        type = SPSS;
+        new Outlook(path + spssT2file);
+
+
+
 //        new Main(path + spssT1file);
 
         // now excel
         type = EXCEL;
-        new Main(path + excelT1file);
-        System.out.println("Here");
+        new Outlook(path + excelT1file);
+
     }
 
     public Outlook(String filename) {
@@ -46,14 +58,8 @@ public class Outlook {
     }
 
 
-    int depth = -1;
     public void processFolder(PSTFolder folder)  throws PSTException, java.io.IOException    {
-        depth++;
-        // the root folder doesn't have a display name
-        if (depth > 0) {
-            printDepth();
-            System.out.println(folder.getDisplayName());
-        }
+
 
         // go through the folders...
         if (folder.hasSubfolders()) {
@@ -65,11 +71,8 @@ public class Outlook {
 
         // and now the emails for this folder
         if (folder.getContentCount() > 0) {
-            depth++;
             PSTMessage email = (PSTMessage)folder.getNextChild();
             while (email != null) {
-                printDepth();
-
                 System.out.println("Email: "+email.getNumberOfAttachments());
                 addSubmission(email);
 
@@ -80,9 +83,9 @@ public class Outlook {
 
                 email = (PSTMessage)folder.getNextChild();
             }
-            depth--;
+
         }
-        depth--;
+
     }
 
     private void addSubmission(PSTMessage email) {
@@ -105,19 +108,22 @@ public class Outlook {
 
         if (email.getNumberOfAttachments() > 0) {
             files = getFiles(email);
-            if (Main.type == Main.SPSS) {
+            if (type == SPSS) {
                 sav = getFor("sav", files);
                 spv = getFor("spv", files);
                 snoSav = snoExists("sav",studentNo, files);
                 snoSpv = snoExists("spv",studentNo, files);
+
             } else { // must be Excel
                 xlsx = getFor("xlsx", files);
                 snoXlsx = snoExists("xlsx",studentNo, files);
             }
         }
 
+
+
         Submission submission = Submission.builder()
-                .type(Main.type) // SPSS or Excel submission
+                .type(type) // SPSS or Excel submission
                 .files(files)
                 .studentNo(studentNo)
                 .studentName(studentName)
@@ -134,7 +140,6 @@ public class Outlook {
                 .date(newDate)
                 .time(newTime)
                 .build();
-
 
         // sno entry already exists
         if(submissions.containsKey(studentNo)) {
@@ -252,13 +257,5 @@ public class Outlook {
 
         return files;
     }
-
-    public void printDepth() {
-        for (int x = 0; x < depth-1; x++) {
-            System.out.print(" | ");
-        }
-        System.out.print(" |- ");
-    }
-
 
 }

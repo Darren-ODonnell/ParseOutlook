@@ -1,3 +1,5 @@
+package Models;
+
 import lombok.Builder;
 import java.sql.Time;
 import java.util.ArrayList;
@@ -9,7 +11,7 @@ public class Submission {
     List<String> files   = new ArrayList<>();
     String studentName   = "";
     String studentNo     = "";
-    int type             = Main.SPSS;
+    int type             = 0;
     boolean xlsxSubmitted = false;
     boolean savSubmitted = false;
     boolean spvSubmitted = false;
