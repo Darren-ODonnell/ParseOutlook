@@ -11,20 +11,21 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class Excel  {
 
+    static  String path = "C:\\Users\\liam.odonnell\\Desktop\\OneDrive - Technological University Dublin\\Tests Admin Automate\\";
+
+    static String resultsFile = "C:\\Users\\liam.odonnell\\Desktop\\OneDrive - Technological University Dublin\\Coursework\\DT341-2 Version1 Sign-in details Anew2.xlsm";
+    static String resultsFileSheet = "Attendance";
+    static String resultsSnoColumn = "";
+    static String resultsAttendanceColumnSPSS = "";
+    static String resultsAttendanceColumnEXCEL = ""; // or always SPSS + 2
+    static String excelFile = "classlist.xlsx";
+
     public static void main(String[]args) {
 
-        String path = "C:\\Users\\liam.odonnell\\Desktop\\OneDrive - Technological University Dublin\\Tests Admin Automate\\";
-
-        String resultsFile = "C:\\Users\\liam.odonnell\\Desktop\\OneDrive - Technological University Dublin\\Coursework\\DT341-2 Version1 Sign-in details Anew2.xlsm";
-        String resultsFileSheet = "Attendance";
-        String resultsSnoColumn = "";
-        String resultsAttendanceColumnSPSS = "";
-        String resultsAttendanceColumnEXCEL = ""; // or always SPSS + 2
-
-        String excelFile = "classlist.xlsx";
         List<ClasslistRow> classlist = getClasslist(excelFile);
         classlist = getAttendance(classlist, excelFile);
 
+        // write to main results file for specific test sheet
     }
 
     private static List<ClasslistRow> getAttendance(List<ClasslistRow> classlist, String excelFile) {
