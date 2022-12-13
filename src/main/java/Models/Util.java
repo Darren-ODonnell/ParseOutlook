@@ -7,6 +7,11 @@ import java.net.UnknownHostException;
 
 public class Util {
 
+    public static final int STUDENTNO_ATTENDANCE = 3;
+    public static final int SPSS_ATTENDANCE = 41;
+    public static final int EXCEL_ATTENDANCE = SPSS_ATTENDANCE + 2;
+
+
     public static final int SIZE_STUDENT_NO = 9;
     public static final String HOME_BASE_ADDRESS = "192.168";
 

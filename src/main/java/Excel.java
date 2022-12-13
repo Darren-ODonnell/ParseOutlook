@@ -1,4 +1,3 @@
-import Models.Util;
 import org.apache.poi.ss.usermodel.*;
 import java.io.File;
 import java.io.IOException;
@@ -6,10 +5,7 @@ import java.util.ArrayList;
 import java.io.FileInputStream;
 import java.util.List;
 
-import org.apache.poi.ss.util.CellReference;
-import org.apache.poi.xssf.usermodel.XSSFName;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.usermodel.*;
 
 import Excel.*;
 import static Models.Util.*;
@@ -33,35 +29,42 @@ public class Excel  {
 //        NamedRange nRange = new NamedRange();
 
         try {
-            File file = new File(workbook);//creating a new file instance
+            File file = new File(workbook); //creating a new file instance
             FileInputStream fis = new FileInputStream(file);//obtaining bytes from the file
             // creating Workbook instance that refers to .xlsx file
             XSSFWorkbook wb = new XSSFWorkbook(fis);
             XSSFSheet sheet = wb.getSheet( worksheet );
+            FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
 
             XSSFName namedRange = wb.getName(range);
             String formula =  namedRange.getRefersToFormula();
-
-
             RangeRef rr = new RangeRef(sheet, formula);
 
             // for each row
             // pick out studentno and attendance
             // update classlist
-            int noPosn = 4;
-            int attPosn = 30;
 
-            for (int r = rr.getStart().getRowIndex(); r < rr.getEnd().getRowIndex(); r++ ) {
-                String stdno = String.valueOf(sheet.getRow(r).getCell(noPosn));
-//                int att = sheet.getRow(r).getCell(attPosn);
-                System.out.println(stdno);
+            int startRow = rr.getStart().getRowIndex()+1;
+            int endRow = rr.getEnd().getRowIndex()+1;
 
-            }
+            for (int row = startRow; row < endRow; row++ ) {
 
+                if( checkCellValue(wb, sheet.getRow(row).getCell(STUDENTNO_ATTENDANCE)) ) {
 
+                    Cell stdno = sheet.getRow(row).getCell(STUDENTNO_ATTENDANCE);
+                    Cell att = sheet.getRow(row).getCell(SPSS_ATTENDANCE);
+                    eval.evaluate(stdno);
+                    eval.evaluate(att);
 
-            for (Row row : sheet) {
-                classlist.add(getRow(row));
+                    String studentNo = stdno.getStringCellValue();
+                    int attendance = 999;
+                    if(att != null)
+                        attendance = (int) att.getNumericCellValue();
+
+                    System.out.println(studentNo + " - " + attendance );
+                } else {
+                    System.out.println("Null found at: " + row);
+                }
             }
 
         } catch(Exception e) {
@@ -70,6 +73,24 @@ public class Excel  {
         return classlist;
 
 
+    }
+
+    private static boolean checkCellValue( XSSFWorkbook wb, Cell cell) {
+        // skip any null/empty values or error values
+        FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
+        CellType type = eval.evaluateFormulaCell(cell);
+        if( cell != null ) {
+            switch (type) {
+                case BOOLEAN:
+                case NUMERIC:
+                case STRING:
+                case BLANK:
+                    return true;
+                case ERROR:
+                    return false;
+            }
+        }
+        return false;
     }
 
     public static List<ClasslistRow> getClasslist(String classlistWb, String classlistSht, String classlistRange) {
@@ -87,18 +108,6 @@ public class Excel  {
 
             String formula =  namedRange.getRefersToFormula();
 
-//            System.out.println("SheetName: " + sheet.getSheetName());
-//            System.out.println("RelationId: requires param");
-//            System.out.println("ActiveCell: " + sheet.getActiveCell());
-//            System.out.println("CellComment - requires parameter: "); // + sheet.getCellComment("test"));
-//            System.out.println("columnBreaks: " + sheet.getColumnBreaks());
-//            System.out.println("CTWorksheet: " + sheet.getCTWorksheet());
-//            System.out.println("Dimension: " + sheet.getDimension());
-//            System.out.println("LastRowNumber: " + sheet.getLastRowNum());
-//            System.out.println("LeftCol: " + sheet.getLeftCol());
-//            System.out.println("PhysicalNumberOfRows: " + sheet.getPhysicalNumberOfRows());
-//            System.out.println("TopRow: " + sheet.getTopRow());
-
             System.out.println("getSheetIndex:      " + namedRange.getSheetIndex());
             System.out.println("getNameName :       "+namedRange.getNameName());
             System.out.println("getSheetName:       "+namedRange.getSheetName());
@@ -107,15 +116,6 @@ public class Excel  {
             System.out.println("getComment:         "+namedRange.getComment());
             System.out.println("getFunctionGroupId: "+namedRange.getFunctionGroupId());
             System.out.println("getClass:           "+namedRange.getClass());
-
-//            getSheetIndex:      -1
-//            getNameName :       studentlist
-//            getSheetName:       Classlist
-//            getRefersToFormula: Classlist!$A$1:$D$105
-//            getFunction:        false
-//            getComment:         null
-//            getFunctionGroupId: 0
-//            getClass:           class org.apache.poi.xssf.usermodel.XSSFName
 
             for (Row row : sheet) {
                 classlist.add(getRow(row));

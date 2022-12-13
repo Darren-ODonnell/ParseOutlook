@@ -35,10 +35,11 @@ public class RangeRef {
         CellReference refStart = new CellReference(startRef);
         CellReference refEnd = new CellReference(endRef);
 
-        Row row = sheet.createRow(refEnd.getRow());
+        Row row1 = sheet.createRow(refStart.getRow());
+        Row row2 = sheet.createRow(refEnd.getRow());
 
-        start = row.createCell(refStart.getCol());
-        end = row.createCell(refEnd.getCol());
+        start = row1.createCell(refStart.getCol());
+        end = row2.createCell(refEnd.getCol());
     }
 
     public RangeRef(Cell start, Cell end) {
