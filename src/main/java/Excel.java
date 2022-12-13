@@ -1,89 +1,89 @@
+import Models.Util;
 import org.apache.poi.ss.usermodel.*;
-
 import java.io.File;
 import java.io.IOException;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.io.FileInputStream;
 import java.util.List;
+
+import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.XSSFName;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import Excel.*;
+import static Models.Util.*;
+
 public class Excel  {
-    final static boolean HOME = true;
-    final static boolean WORK = false;
-
-
-    static String basePathHome = "C:\\Users\\liam\\";
-    static String basePathWork = "C:\\Users\\liam.odonnell\\Desktop\\";
-    static String testFilePath = "OneDrive - Technological University Dublin\\Tests Admin Automate\\";
-    static String resultFilePath = testFilePath + "Coursework\\";
-
-    static String excelWb = "classlist.xlsx";
-    static String resultsWb = "DT341-2 Version1 Sign-in details Anew2.xlsm";
-
-    static String resultsSheet = "Attendance";
-    static String resultsSnoColumn = "";
-    static String resultsAttendanceColumnSPSS = "";
-    static String resultsAttendanceColumnEXCEL = ""; // or always SPSS + 2
-
-    static String excelFile = "classlist.xlsx";
-
-
-
-    public static String getBasePath() {
-
-        String ip = getIpAddress();
-        boolean locn = ip.contains("192.168");
-
-        return (locn) ? basePathHome : basePathWork;
-    }
 
     public static void main(String[]args) {
         String basePath = getBasePath();
 
-        List<ClasslistRow> classlist = getClasslist(basePath + excelFile);
-        classlist = addAttendance(classlist, excelFile);
+        List<ClasslistRow> classlist = getClasslist(basePath + TEST_FILE_PATH + CLASSLIST_WB, CLASSLIST_SHT, CLASSLIST_RANGE);
+        classlist = addAttendance(classlist,basePath +  RESULT_FILE_PATH + RESULTS_WB, ATTENDANCE_SHT, ATTENDANCE_RANGE);
 
         // write to main results file for specific test sheet
     }
-    public static String getIpAddress() {
-        try (final DatagramSocket datagramSocket = new DatagramSocket()) {
-            datagramSocket.connect(InetAddress.getByName("8.8.8.8"), 12345);
-            return datagramSocket.getLocalAddress().getHostAddress();
-        } catch (UnknownHostException | SocketException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
-    private static List<ClasslistRow> addAttendance(List<ClasslistRow> classlist, String excelFile) {
+    private static List<ClasslistRow> addAttendance(List<ClasslistRow> classlist, String workbook, String worksheet, String range) {
         // read in columns from excel
         // merge these with classlist
         // done
-        List<ClasslistRow> classlist = new ArrayList<>();
-        try {
 
+//        NamedRange nRange = new NamedRange();
+
+        try {
+            File file = new File(workbook);//creating a new file instance
+            FileInputStream fis = new FileInputStream(file);//obtaining bytes from the file
+            // creating Workbook instance that refers to .xlsx file
+            XSSFWorkbook wb = new XSSFWorkbook(fis);
+            XSSFSheet sheet = wb.getSheet( worksheet );
+
+            XSSFName namedRange = wb.getName(range);
+            String formula =  namedRange.getRefersToFormula();
+
+
+            RangeRef rr = new RangeRef(sheet, formula);
+
+            // for each row
+            // pick out studentno and attendance
+            // update classlist
+            int noPosn = 4;
+            int attPosn = 30;
+
+            for (int r = rr.getStart().getRowIndex(); r < rr.getEnd().getRowIndex(); r++ ) {
+                String stdno = String.valueOf(sheet.getRow(r).getCell(noPosn));
+//                int att = sheet.getRow(r).getCell(attPosn);
+                System.out.println(stdno);
+
+            }
+
+
+
+            for (Row row : sheet) {
+                classlist.add(getRow(row));
+            }
+
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
         return classlist;
+
+
     }
 
-    public static List<ClasslistRow> getClasslist(String filename) {
+    public static List<ClasslistRow> getClasslist(String classlistWb, String classlistSht, String classlistRange) {
 
 
         List<ClasslistRow> classlist = new ArrayList<>();
         try {
-            File file = new File(path + excelFile);//creating a new file instance
+            File file = new File(classlistWb);//creating a new file instance
             FileInputStream fis = new FileInputStream(file);//obtaining bytes from the file
             //creating Workbook instance that refers to .xlsx file
             XSSFWorkbook wb = new XSSFWorkbook(fis);
-            XSSFSheet sheet = wb.getSheet("classlist");
+            XSSFSheet sheet = wb.getSheet( classlistSht );
 
-            String name = "subset";
-
-            XSSFName namedRange = wb.getName(name);
+            XSSFName namedRange = wb.getName(classlistRange);
 
             String formula =  namedRange.getRefersToFormula();
 
@@ -169,68 +169,5 @@ public class Excel  {
         return value;                         // returns the cell value
     }
 
-
-    public Cell getStartCell(String cellStr) {
-        Cell cell = null;
-        return cell;
-    }
-
-    public Cell getEndStart(String cellSAtr) {
-        Cell cell = null;
-        return cell;
-    }
-    class Attendance {
-        String studentNo = "";
-        boolean attendance = false;
-    }
-
-    class Range {
-        String rangeStr="";
-        Cell start;
-        Cell end;
-        int rowIndex;
-        int columnIndex;
-
-        public Range (String range) {
-            String[] parts = range.split("!");
-            Cell startRange = getStartRange(parts[1]);
-            Cell endRange = getEndRange(parts[1]);
-        }
-        public Range (Cell start, Cell end) {
-            this.start = start;
-            this.end = end;
-        }
-
-        private Cell getEndRange(String part) {
-            String[] parts = part.split(":");
-            String start = parts[0];
-            Cell cell = null;
-            return cell;
-        }
-
-        private Cell getStartRange(String part) {
-            String[] parts = part.split(":");
-            String end = parts[1];
-            Cell cell = null;
-            return cell;
-        }
-
-        public Cell getEnd() {
-            return end;
-        }
-
-        public void setEnd(Cell end) {
-            this.end = end;
-        }
-
-        public int getRow(Cell cell) {
-            return cell.getRow().getRowNum();
-
-        }
-        public int getCol(Cell cell) {
-            return cell.getColumnIndex();
-        }
-
-    }
 
 }

@@ -14,6 +14,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static Models.Util.SIZE_STUDENT_NO;
+
 public class Outlook {
 
     public static final int SPSS = 1;
@@ -95,46 +97,26 @@ public class Outlook {
         boolean snoSpv = false;
         boolean snoXlsx = false;
 
-        String studentNo = email.getSenderName().substring(0,9).toLowerCase();
-        String studentName = email.getSenderName().substring(10);
-
+        String studentNo = email.getSenderName().substring(0,SIZE_STUDENT_NO).toLowerCase();
         String emailDate = String.valueOf(email.getClientSubmitTime());
-        Date newDate = getDate(emailDate);
-        Time newTime = getTime(emailDate);
-
-        if (email.getNumberOfAttachments() > 0) {
-            files = getFiles(email);
-            if (Main.type == Main.SPSS) {
-                sav = getFor("sav", files);
-                spv = getFor("spv", files);
-                snoSav = snoExists("sav",studentNo, files);
-                snoSpv = snoExists("spv",studentNo, files);
-
-            } else { // must be Excel
-                xlsx = getFor("xlsx", files);
-                snoXlsx = snoExists("xlsx",studentNo, files);
-            }
-        }
-
-
 
         Submission submission = Submission.builder()
-                .type(type) // SPSS or Excel submission
-                .files(files)
-                .studentNo(studentNo)
-                .studentName(studentName)
-                .qtyFiles(email.getNumberOfAttachments())
+                .type( type ) // SPSS or Excel submission
+                .files( getFiles(email) )
+                .studentNo( studentNo )
+                .studentName(email.getSenderName().substring(SIZE_STUDENT_NO + 1))
+                .qtyFiles( email.getNumberOfAttachments())
 
-                .savSubmitted(sav)
-                .spvSubmitted(spv)
-                .xlsxSubmitted(xlsx)
+                .savSubmitted( getFor("sav", files) )
+                .spvSubmitted( getFor("spv", files) )
+                .xlsxSubmitted( getFor("xlsx", files) )
 
-                .snoSpv(snoSpv)
-                .snoSav(snoSav)
-                .snoXlsx(snoXlsx)
+                .snoSpv( snoExists("spv",studentNo, files) )
+                .snoSav( snoExists("sav",studentNo, files) )
+                .snoXlsx( getFor("xlsx", files) )
 
-                .date(newDate)
-                .time(newTime)
+                .date( getDate(emailDate) )
+                .time( getTime(emailDate) )
                 .build();
 
         // sno entry already exists
@@ -243,9 +225,7 @@ public class Outlook {
             try {
                 String file = email.getAttachment(i).getLongFilename();
                 files.add(file);
-            } catch (PSTException e) {
-                throw new RuntimeException(e);
-            } catch (IOException e) {
+            } catch (PSTException | IOException e) {
                 throw new RuntimeException(e);
             }
 
