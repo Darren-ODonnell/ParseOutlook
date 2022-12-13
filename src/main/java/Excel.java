@@ -151,7 +151,7 @@ public class Excel  {
 
     }
 
-    public String ReadCellData(int vRow,int vColumn)  {
+    public String ReadCellData(int vRow,int vColumn) {
         String value = null; //variable for storing the cell value
         Workbook wb = null; //initialize Workbook null
         try {
@@ -159,15 +159,16 @@ public class Excel  {
             FileInputStream fis = new FileInputStream("C:\\demo\\EmployeeData.xlsx");
             //constructs an XSSFWorkbook object,by buffering the whole stream into the memory
             wb = new XSSFWorkbook(fis);
-        } catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
-        Sheet sheet = wb.getSheetAt(0);     // getting the XSSFSheet object at given index
-        Row row = sheet.getRow(vRow);         // returns the logical row
-        Cell cell = row.getCell(vColumn);     // getting the cell representing the given column
-        value = cell.getStringCellValue();    // getting cell value
-        return value;                         // returns the cell value
+        Sheet sheet = null;
+        if ((sheet = wb.getSheetAt(0)) != null) {     // getting the XSSFSheet object at given index
+            Row row = sheet.getRow(vRow);         // returns the logical row
+            Cell cell = row.getCell(vColumn);     // getting the cell representing the given column
+            value = cell.getStringCellValue();    // getting cell value
+                                     // returns the cell value
+        }
+        return value;
     }
-
-
 }
