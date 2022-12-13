@@ -37,7 +37,6 @@ public class Outlook {
         type = SPSS;
         new Outlook(path + spssT2file);
 
-//        new Main(path + spssT1file);
 
         // now excel
 //        type = EXCEL;
