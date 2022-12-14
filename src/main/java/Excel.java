@@ -1,4 +1,3 @@
-import lombok.val;
 import org.apache.poi.ss.usermodel.*;
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,15 +17,10 @@ public class Excel  {
         HashMap<String, ClasslistRow> classlist = getClasslist(TESTS_FOLDER + CLASSLIST_WB, CLASSLIST_SHT, CLASSLIST_RANGE);
         classlist = addAttendance(classlist,RESULTS_FOLDER + RESULTS_WB, ATTENDANCE_SHT, ATTENDANCE_RANGE);
 
-        classlist.entrySet().forEach(entry -> {
-            System.out.println(entry.getKey() + " " + entry.toString());
-        });
-
-        // write to main results file for specific test sheet
+        classlist.entrySet().forEach( entry -> System.out.println(entry.getKey() + " " + entry) );
     }
 
     private static HashMap<String, ClasslistRow> addAttendance(HashMap<String, ClasslistRow> classlist, String workbook, String worksheet, String range) {
-
 
         try {
             File file = new File(workbook); //creating a new file instance
@@ -100,16 +94,14 @@ public class Excel  {
         try {
             File file = new File(classlistWb);//creating a new file instance
             FileInputStream fis = new FileInputStream( file );//obtaining bytes from the file
-            XSSFSheet sheet = new XSSFWorkbook( fis ).getSheet( classlistSht );;
-            sheet.forEach( row -> classlist.put(getStudentNo( row ).toLowerCase(), getClasslistRow( row )) );
+            XSSFSheet sheet = new XSSFWorkbook( fis ).getSheet( classlistSht );
+            sheet.forEach( row -> classlist.put(getStudentNo( row).toLowerCase(), getClasslistRow( row )) );
 
         } catch(Exception e) {
             e.printStackTrace();
         }
         return classlist;
     }
-
-
 
     public static ClasslistRow getClasslistRow(Row row) {
         // get the 4 columns
@@ -127,17 +119,15 @@ public class Excel  {
         String fn = parts[1].strip().replace(".","");
         listRow.setSurname( sn );
         listRow.setFirstname( fn );
-//        System.out.println(listRow);
 
         return listRow;
-
     }
 
     private static String getStudentNo(Row row) {
-        return row.getCell(0).getStringCellValue();
+        return row.getCell( 0 ).getStringCellValue().toLowerCase();
     }
-    private static String getName(XSSFRow row) {
-        return row.getCell(INFOVIEW_FULLNAME_MIN).getStringCellValue();
+    private static String getName(Row row) {
+        return row.getCell(INFOVIEW_FULLNAME_MIN).getStringCellValue().toLowerCase();
     }
     public static HashMap<String, Infoview> getInfoviewList() {
 
@@ -157,19 +147,18 @@ public class Excel  {
             RangeRef rr = new RangeRef(sheet, formula);
 
             int startRow = rr.getStart().getRowIndex()+1;
-            int endRow = rr.getEnd().getRowIndex()+1;
+            int endRow = rr.getEnd().getRowIndex();
 
-            for(int row = startRow; row< endRow-1; row++) {
+            for(int vRow = startRow; vRow < endRow-1; vRow++) {
 
-                // update row data if non empty
-                if(!sheet.getRow(row).getCell(INFOVIEW_STUDENT_NO).getStringCellValue().isEmpty() ) {
+                if((sheet.getRow(vRow) != null) && sheet.getRow(vRow).getCell(INFOVIEW_STUDENT_NO).getStringCellValue().length()>0) {
 
-                    classlistBySno.put(getStudentNo(sheet.getRow(row)).toLowerCase(), getInfoviewRow(wb, sheet.getRow(row)));
-                    classlistByName.put(getName(sheet.getRow(row)).toLowerCase(), getInfoviewRow(wb, sheet.getRow(row)));
+                    Infoview info = getInfoviewRow(wb, sheet.getRow(vRow));
+                    String name = info.getFullnameMax();
+                    classlistByName.put( name  , info );
                 }
             }
-//            sheet.forEach(row -> );
-            classlistByName.forEach( (key,value) -> System.out.println(key + " -> " + value.toString()) );
+            classlistByName.entrySet().forEach ( key -> System.out.println(key + " -> " + classlistByName.get(key)) );
 
         } catch(Exception e) {
             e.printStackTrace();
@@ -180,22 +169,26 @@ public class Excel  {
 
     }
 
+    private static int getCellCount(XSSFRow row) {
+        return row.getLastCellNum() - row.getFirstCellNum();
+
+    }
+
+
     public static Infoview getInfoviewRow( XSSFWorkbook wb, Row row) {
         // get the 4 columns
         FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
 
-        // check for empty rows
-
         Infoview listRow = Infoview.builder()
-                .address(eval.evaluate(row.getCell(INFOVIEW_ADDRESS)).getStringValue())
-                .classRollNo(eval.evaluate(row.getCell(INFOVIEW_CLASS_ROLL_NO)).getStringValue())
-                .studentNo(eval.evaluate(row.getCell(INFOVIEW_STUDENT_NO)).getStringValue())
-                .firstname(eval.evaluate(row.getCell(INFOVIEW_FIRSTNAME)).getStringValue())
-                .surname(eval.evaluate(row.getCell(INFOVIEW_SURNAME)).getStringValue())
-                .fullnameMax(eval.evaluate(row.getCell(INFOVIEW_FULLNAME_MIN)).getStringValue())
-                .fullnameMin(eval.evaluate(row.getCell(INFOVIEW_FULLNAME_MAX)).getStringValue())
+                .address(       eval.evaluate(  row.getCell(INFOVIEW_ADDRESS)).getStringValue())
+                .classRollNo(   eval.evaluate(  row.getCell(INFOVIEW_CLASS_ROLL_NO)).getStringValue())
+                .studentNo(     eval.evaluate(  row.getCell(INFOVIEW_STUDENT_NO)).getStringValue())
+                .firstname(     eval.evaluate(  row.getCell(INFOVIEW_FIRSTNAME)).getStringValue())
+                .surname(       eval.evaluate(  row.getCell(INFOVIEW_SURNAME)).getStringValue())
+                .fullnameMax(   eval.evaluate(  row.getCell(INFOVIEW_FULLNAME_MIN)).getStringValue())
+                .fullnameMin(   eval.evaluate(  row.getCell(INFOVIEW_FULLNAME_MAX)).getStringValue())
                 .surnameFirstname(eval.evaluate(row.getCell(INFOVIEW_SURNAME_FIRSTNAME)).getStringValue())
-                .email(eval.evaluate(row.getCell(INFOVIEW_EMAIL)).getStringValue())
+                .email(         eval.evaluate(  row.getCell(INFOVIEW_EMAIL)).getStringValue())
                 .build();
 
         return listRow;

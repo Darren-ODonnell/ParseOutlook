@@ -1,6 +1,5 @@
 package Models;
 
-import java.awt.*;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
@@ -112,7 +111,14 @@ public class Util {
         return cell;
     }
 
-    public static String findStudentNo(String name, String filename) {
+    public static String findStudentNo(HashMap<String, Infoview> classlist, String name, String filename) {
+
+        String studentNo = "";
+        if(classlist.containsKey(name.toLowerCase())) {
+            studentNo = classlist.get(name.toLowerCase()).getStudentNo();
+            return studentNo;
+        }
+
 
         if(filename.matches(MATCH_STUDENT_NO)) {
             Pattern p = Pattern.compile(CAPTURE_STUDENT_NO);
