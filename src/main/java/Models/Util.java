@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -113,12 +114,12 @@ public class Util {
 
     public static String findStudentNo(HashMap<String, Infoview> classlist, String name, String filename) {
 
+        // find student number based on the students name
         String studentNo = "";
         if(classlist.containsKey(name.toLowerCase())) {
             studentNo = classlist.get(name.toLowerCase()).getStudentNo();
-            return studentNo;
+            return studentNo.toLowerCase();
         }
-
 
         if(filename.matches(MATCH_STUDENT_NO)) {
             Pattern p = Pattern.compile(CAPTURE_STUDENT_NO);
@@ -130,9 +131,49 @@ public class Util {
         return "";
     }
 
+    public boolean getFor(String extension, List<String> files) {
+        extension = extension.toLowerCase();
+        for(String file : files) {
+            file = file.toLowerCase();
+            String endOfFile = file.substring(file.length() -3);
+            switch (extension) {
+                case "xlsx":
+                    if(file.substring(file.length() -4).equals(extension))
+                        return true;
+                case "sav":
+                    if(endOfFile.equals(extension))
+                        return true;
+                case "spv":
+                    if(endOfFile.equals(extension))
+                        return true;
+            }
+        }
+        return false;
+    }
 
+    public boolean snoExists(String extn, String studentNo, List<String> files) {
+        String sno = studentNo.toLowerCase();
+        String extension = extn.toLowerCase();
 
+        for (String file : files) {
+//            file = file.toLowerCase();
+            String endOfFile = file.substring(file.length() - 3).toLowerCase();
+            switch (extension) {
+                case "xlsx":
+                    if (file.substring(file.length() - 4).equals(extension))
+                        if (file.contains(sno))
+                            return true;
+                    break;
+                case "sav":
+                case "spv":
+                    if (endOfFile.equals(extension))
+                        if (file.contains(sno))
+                            return true;
+                    break;
+            }
 
-
+        }
+        return false;
+    }
 
 }

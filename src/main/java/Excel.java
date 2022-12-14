@@ -3,9 +3,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.HashMap;
 import org.apache.poi.xssf.usermodel.*;
-
 import static Models.Util.*;
-
 import Models.Infoview;
 import Excel.*;
 
@@ -126,6 +124,7 @@ public class Excel  {
     private static String getStudentNo(Row row) {
         return row.getCell( 0 ).getStringCellValue().toLowerCase();
     }
+
     private static String getName(Row row) {
         return row.getCell(INFOVIEW_FULLNAME_MIN).getStringCellValue().toLowerCase();
     }
@@ -154,7 +153,7 @@ public class Excel  {
                 if((sheet.getRow(vRow) != null) && sheet.getRow(vRow).getCell(INFOVIEW_STUDENT_NO).getStringCellValue().length()>0) {
 
                     Infoview info = getInfoviewRow(wb, sheet.getRow(vRow));
-                    String name = info.getFullnameMax();
+                    String name = info.getFullnameMax().toLowerCase();
                     classlistByName.put( name  , info );
                 }
             }
@@ -164,19 +163,9 @@ public class Excel  {
             e.printStackTrace();
         }
         return classlistByName;
-
-
-
     }
-
-    private static int getCellCount(XSSFRow row) {
-        return row.getLastCellNum() - row.getFirstCellNum();
-
-    }
-
 
     public static Infoview getInfoviewRow( XSSFWorkbook wb, Row row) {
-        // get the 4 columns
         FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
 
         Infoview listRow = Infoview.builder()

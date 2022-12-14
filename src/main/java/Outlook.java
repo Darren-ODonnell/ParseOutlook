@@ -5,7 +5,6 @@ import com.pff.PSTException;
 import com.pff.PSTFile;
 import com.pff.PSTFolder;
 import com.pff.PSTMessage;
-import org.openxmlformats.schemas.drawingml.x2006.chart.STSecondPieSizeUShort;
 
 import java.io.IOException;
 import java.sql.Date;
@@ -13,6 +12,7 @@ import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import Models.*;
 
 import static Models.Util.SIZE_STUDENT_NO;
 
@@ -21,6 +21,7 @@ public class Outlook {
     public static final int SPSS = 1;
     public static final int EXCEL = 2;
     public static int type = 0;
+    Util util = new Util();
 
     HashMap<String, List<Submission>> submissions = new HashMap<>();
 
@@ -56,8 +57,6 @@ public class Outlook {
 
 
     public void processFolder(PSTFolder folder)  throws PSTException, java.io.IOException    {
-
-
         // go through the folders...
         if (folder.hasSubfolders()) {
             Vector<PSTFolder> childFolders = folder.getSubFolders();
@@ -77,12 +76,9 @@ public class Outlook {
                     System.out.println("Email: "+email.getAttachment(0).getLongFilename());
                     System.out.println("Email: "+email.getAttachment(1).getLongFilename());
                 }
-
                 email = (PSTMessage)folder.getNextChild();
             }
-
         }
-
     }
 
     private void addSubmission(PSTMessage email) {
@@ -106,13 +102,13 @@ public class Outlook {
                 .studentName(email.getSenderName().substring(SIZE_STUDENT_NO + 1))
                 .qtyFiles( email.getNumberOfAttachments())
 
-                .savSubmitted( getFor("sav", files) )
-                .spvSubmitted( getFor("spv", files) )
-                .xlsxSubmitted( getFor("xlsx", files) )
+                .savSubmitted( util.getFor("sav", files) )
+                .spvSubmitted( util.getFor("spv", files) )
+                .xlsxSubmitted( util.getFor("xlsx", files) )
 
-                .snoSpv( snoExists("spv",studentNo, files) )
-                .snoSav( snoExists("sav",studentNo, files) )
-                .snoXlsx( getFor("xlsx", files) )
+                .snoSpv( util.snoExists("spv",studentNo, files) )
+                .snoSav( util.snoExists("sav",studentNo, files) )
+                .snoXlsx( util.getFor("xlsx", files) )
 
                 .date( getDate(emailDate) )
                 .time( getTime(emailDate) )
@@ -123,15 +119,11 @@ public class Outlook {
             List<Submission> subs = submissions.get(studentNo);
             subs.add(submission);
             submissions.replace(studentNo, subs);
-
-
         } else {
             List<Submission> subs = new ArrayList<>();
             subs.add(submission);
             submissions.put(studentNo, subs);
         }
-
-
     }
 
     private Date getDate(String date) {
@@ -152,17 +144,13 @@ public class Outlook {
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
-
         return newDate;
     }
 
     private Time getTime(String strTime) {
-
         SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss", Locale.UK);
-
         String[] parts = strTime.split(" ");
         String time = parts[3];
-
         Time newTime;
         try {
             newTime = new Time( formatter.parse(time).getTime() );
@@ -170,51 +158,6 @@ public class Outlook {
             throw new RuntimeException(e);
         }
         return newTime;
-    }
-
-    private boolean snoExists(String extn, String studentNo, List<String> files) {
-        String sno = studentNo.toLowerCase();
-        String extension = extn.toLowerCase();
-
-        for (String file : files) {
-//            file = file.toLowerCase();
-            String endOfFile = file.substring(file.length() - 3).toLowerCase();
-            switch (extension) {
-                case "xlsx":
-                    if (file.substring(file.length() - 4).equals(extension))
-                        if (file.contains(sno))
-                            return true;
-                    break;
-                case "sav":
-                case "spv":
-                    if (endOfFile.equals(extension))
-                        if (file.contains(sno))
-                            return true;
-                    break;
-            }
-
-        }
-        return false;
-    }
-
-    private boolean getFor(String extension, List<String> files) {
-        extension = extension.toLowerCase();
-        for(String file : files) {
-            file = file.toLowerCase();
-            String endOfFile = file.substring(file.length() -3);
-            switch (extension) {
-                case "xlsx":
-                    if(file.substring(file.length() -4).equals(extension))
-                        return true;
-                case "sav":
-                    if(endOfFile.equals(extension))
-                        return true;
-                case "spv":
-                    if(endOfFile.equals(extension))
-                        return true;
-            }
-        }
-        return false;
     }
 
     public List<String> getFiles(PSTMessage email) {
@@ -227,10 +170,7 @@ public class Outlook {
             } catch (PSTException | IOException e) {
                 throw new RuntimeException(e);
             }
-
         }
-
         return files;
     }
-
 }

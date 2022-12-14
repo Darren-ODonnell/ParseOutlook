@@ -11,6 +11,42 @@ public class ZipSubmission {
     String name;
     String date;
     List<String> files;
+    int type       ;
+    @Builder.Default
+    boolean xlsxSubmitted = false;
+    @Builder.Default
+    boolean savSubmitted = false;
+    @Builder.Default
+    boolean spvSubmitted = false;
+    @Builder.Default
+    boolean snoXlsx      = false;
+    @Builder.Default
+    boolean snoSav       = false;
+    @Builder.Default
+    boolean snoSpv       = false;
+    @Builder.Default
+    int qtyFiles         = 0;
+    @Builder.Default
+    int qtyBsSubmissions = 0;
+
+    public int getType() {        return type;    }
+    public void setType(int type) {        this.type = type;    }
+    public boolean isXlsxSubmitted() {        return xlsxSubmitted;    }
+    public void setXlsxSubmitted(boolean xlsxSubmitted) {        this.xlsxSubmitted = xlsxSubmitted;    }
+    public boolean isSavSubmitted() {        return savSubmitted;    }
+    public void setSavSubmitted(boolean savSubmitted) {        this.savSubmitted = savSubmitted;    }
+    public boolean isSpvSubmitted() {        return spvSubmitted;    }
+    public void setSpvSubmitted(boolean spvSubmitted) {        this.spvSubmitted = spvSubmitted;    }
+    public boolean isSnoXlsx() {        return snoXlsx;    }
+    public void setSnoXlsx(boolean snoXlsx) {        this.snoXlsx = snoXlsx;    }
+    public boolean isSnoSav() {        return snoSav;    }
+    public void setSnoSav(boolean snoSav) {        this.snoSav = snoSav;    }
+    public boolean isSnoSpv() {        return snoSpv;    }
+    public void setSnoSpv(boolean snoSpv) {        this.snoSpv = snoSpv;    }
+    public int getQtyFiles() {        return qtyFiles;    }
+    public void setQtyFiles(int qtyFiles) {        this.qtyFiles = qtyFiles;    }
+    public int getQtyBsSubmissions() {        return qtyBsSubmissions;    }
+    public void setQtyBsSubmissions(int qtyBsSubmissions) {        this.qtyBsSubmissions = qtyBsSubmissions;    }
 
     public String getHeader()        {  return header;   }
     public void setHeader(String header) {  this.header    = header;    }

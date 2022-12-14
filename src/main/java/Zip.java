@@ -30,9 +30,9 @@ public class Zip {
         String excelT2B = "Excel T2B.zip";
 
         HashMap<String, Infoview> classlist = Excel.getInfoviewList();
-//        classlist.forEach((key, value) ->  System.out.println(key + " -> " + value.toString()) );
+        classlist.forEach((key, value) ->  System.out.println(key + " -> " + value.toString()) );
 
-//        HashMap<String, ZipSubmission> zipSubmissions = getZipSubmissions(classlist, TESTS_FOLDER + spssT1A);
+        HashMap<String, ZipSubmission> zipSubmissions = getZipSubmissions(classlist, TESTS_FOLDER + spssT1A);
     }
 
     private static HashMap<String, ZipSubmission> getZipSubmissions(HashMap<String, Infoview> classlist, String filename) {
@@ -68,16 +68,13 @@ public class Zip {
             }
 
             List<String> files = new ArrayList<>();
-
             String studentNo = findStudentNo(classlist, name, file);
-
             if(zipSubmissions.containsKey(studentNo.toLowerCase())) {
                 files = zipSubmissions.get(studentNo.toLowerCase()).getFiles();
             }
             files.add(file);
-
             ZipSubmission zipSubmission = ZipSubmission.builder()
-                    .studentNo(studentNo)
+                    .studentNo(studentNo.toLowerCase())
                     .header(header)
                     .name(name)
                     .date(date)
@@ -87,9 +84,7 @@ public class Zip {
             zipSubmissions.put(studentNo, zipSubmission);
         }
 
-        zipSubmissions.forEach((key,value) -> {
-            System.out.println(key + "-> "+value);
-        });
+        zipSubmissions.forEach((key,value) -> System.out.println(key + "-> "+value) );
 
         return zipSubmissions;
     }
