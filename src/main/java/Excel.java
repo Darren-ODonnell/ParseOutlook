@@ -1,23 +1,22 @@
+import lombok.val;
 import org.apache.poi.ss.usermodel.*;
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.io.FileInputStream;
 import java.util.HashMap;
-import java.util.List;
-
 import org.apache.poi.xssf.usermodel.*;
 
-import Excel.*;
 import static Models.Util.*;
+
+import Models.Infoview;
+import Excel.*;
 
 public class Excel  {
 
     public static void main(String[]args) {
-        String basePath = getBasePath();
+        setBasePath();
 
-        HashMap<String, ClasslistRow> classlist = getClasslist(basePath + TEST_FILE_PATH + CLASSLIST_WB, CLASSLIST_SHT, CLASSLIST_RANGE);
-        classlist = addAttendance(classlist,basePath +  RESULT_FILE_PATH + RESULTS_WB, ATTENDANCE_SHT, ATTENDANCE_RANGE);
+        HashMap<String, ClasslistRow> classlist = getClasslist(TESTS_FOLDER + CLASSLIST_WB, CLASSLIST_SHT, CLASSLIST_RANGE);
+        classlist = addAttendance(classlist,RESULTS_FOLDER + RESULTS_WB, ATTENDANCE_SHT, ATTENDANCE_RANGE);
 
         classlist.entrySet().forEach(entry -> {
             System.out.println(entry.getKey() + " " + entry.toString());
@@ -100,14 +99,9 @@ public class Excel  {
 
         try {
             File file = new File(classlistWb);//creating a new file instance
-            FileInputStream fis = new FileInputStream(file);//obtaining bytes from the file
-            // creating Workbook instance that refers to .xlsx/xlsm file
-            XSSFWorkbook wb = new XSSFWorkbook(fis);
-            XSSFSheet sheet = wb.getSheet( classlistSht );
-
-            for (Row row : sheet) {
-                classlist.put(getStudentNo(row).toLowerCase(), getRow(row));
-            }
+            FileInputStream fis = new FileInputStream( file );//obtaining bytes from the file
+            XSSFSheet sheet = new XSSFWorkbook( fis ).getSheet( classlistSht );;
+            sheet.forEach( row -> classlist.put(getStudentNo( row ).toLowerCase(), getClasslistRow( row )) );
 
         } catch(Exception e) {
             e.printStackTrace();
@@ -115,11 +109,9 @@ public class Excel  {
         return classlist;
     }
 
-    private static String getStudentNo(Row row) {
-        return row.getCell(0).getStringCellValue();
-    }
 
-    public static ClasslistRow getRow(Row row) {
+
+    public static ClasslistRow getClasslistRow(Row row) {
         // get the 4 columns
         ClasslistRow listRow = new ClasslistRow();
 
@@ -141,4 +133,71 @@ public class Excel  {
 
     }
 
+    private static String getStudentNo(Row row) {
+        return row.getCell(0).getStringCellValue();
+    }
+    private static String getName(XSSFRow row) {
+        return row.getCell(INFOVIEW_FULLNAME_MIN).getStringCellValue();
+    }
+    public static HashMap<String, Infoview> getInfoviewList() {
+
+        HashMap<String, Infoview> classlistByName = new HashMap<>();
+        HashMap<String, Infoview> classlistBySno = new HashMap<>();
+
+        try {
+            File file = new File(RESULTS_FOLDER + RESULTS_WB);//creating a new file instance
+            FileInputStream fis = new FileInputStream(file);//obtaining bytes from the file
+            // creating Workbook instance that refers to .xlsx/xlsm file
+            XSSFWorkbook wb = new XSSFWorkbook(fis);
+            XSSFSheet sheet = wb.getSheet( INFOVIEW_SHT );
+            FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
+
+            XSSFName namedRange = wb.getName(INFOVIEW_RANGE);
+            String formula =  namedRange.getRefersToFormula();
+            RangeRef rr = new RangeRef(sheet, formula);
+
+            int startRow = rr.getStart().getRowIndex()+1;
+            int endRow = rr.getEnd().getRowIndex()+1;
+
+            for(int row = startRow; row< endRow-1; row++) {
+
+                // update row data if non empty
+                if(!sheet.getRow(row).getCell(INFOVIEW_STUDENT_NO).getStringCellValue().isEmpty() ) {
+
+                    classlistBySno.put(getStudentNo(sheet.getRow(row)).toLowerCase(), getInfoviewRow(wb, sheet.getRow(row)));
+                    classlistByName.put(getName(sheet.getRow(row)).toLowerCase(), getInfoviewRow(wb, sheet.getRow(row)));
+                }
+            }
+//            sheet.forEach(row -> );
+            classlistByName.forEach( (key,value) -> System.out.println(key + " -> " + value.toString()) );
+
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        return classlistByName;
+
+
+
+    }
+
+    public static Infoview getInfoviewRow( XSSFWorkbook wb, Row row) {
+        // get the 4 columns
+        FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
+
+        // check for empty rows
+
+        Infoview listRow = Infoview.builder()
+                .address(eval.evaluate(row.getCell(INFOVIEW_ADDRESS)).getStringValue())
+                .classRollNo(eval.evaluate(row.getCell(INFOVIEW_CLASS_ROLL_NO)).getStringValue())
+                .studentNo(eval.evaluate(row.getCell(INFOVIEW_STUDENT_NO)).getStringValue())
+                .firstname(eval.evaluate(row.getCell(INFOVIEW_FIRSTNAME)).getStringValue())
+                .surname(eval.evaluate(row.getCell(INFOVIEW_SURNAME)).getStringValue())
+                .fullnameMax(eval.evaluate(row.getCell(INFOVIEW_FULLNAME_MIN)).getStringValue())
+                .fullnameMin(eval.evaluate(row.getCell(INFOVIEW_FULLNAME_MAX)).getStringValue())
+                .surnameFirstname(eval.evaluate(row.getCell(INFOVIEW_SURNAME_FIRSTNAME)).getStringValue())
+                .email(eval.evaluate(row.getCell(INFOVIEW_EMAIL)).getStringValue())
+                .build();
+
+        return listRow;
+    }
 }
