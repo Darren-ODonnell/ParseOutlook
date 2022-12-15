@@ -1,4 +1,5 @@
 import Models.Infoview;
+import Models.Util;
 import Models.ZipSubmission;
 
 import java.io.File;
@@ -15,24 +16,31 @@ import static Models.Util.*;
 
 public class Zip {
 
+    static Util util = new Util();
+    public static int type = 0;
+
     public static void main(String[] args) {
+
 
         // set paths based on Work or Home
         setBasePath();
 
-        String spssT1A = "SPSS T1A.zip";
-        String spssT1B = "SPSS T1B.zip";
-        String spssT2A = "SPSS T2A.zip";
-        String spssT2B = "SPSS T2B.zip";
-        String excelT1A = "Excel T1A.zip";
-        String excelT2A = "Excel T2A.zip";
-        String excelT1B = "Excel T1B.zip";
-        String excelT2B = "Excel T2B.zip";
+//        String spssT1A = "SPSS T1A.zip";   type = SPSS;
+//        String spssT1B = "SPSS T1B.zip";   type = SPSS;
+        String spssT2A = "SPSS T2.zip";   type = SPSS;
+//        String spssT2B = "SPSS T2B.zip";   type = SPSS;
+//        String excelT1A = "Excel T1A.zip"; type = EXCEL;
+//        String excelT2A = "Excel T2A.zip"; type = EXCEL;
+//        String excelT1B = "Excel T1B.zip"; type = EXCEL;
+//        String excelT2B = "Excel T2B.zip"; type = EXCEL;
 
         HashMap<String, Infoview> classlist = Excel.getInfoviewList();
         classlist.forEach((key, value) ->  System.out.println(key + " -> " + value.toString()) );
 
-        HashMap<String, ZipSubmission> zipSubmissions = getZipSubmissions(classlist, TESTS_FOLDER + spssT1A);
+        HashMap<String, ZipSubmission> zipSubmissions = getZipSubmissions(classlist, TESTS_FOLDER + spssT2A);
+
+        zipSubmissions.forEach((key, value) -> System.out.println(key + " -> " + value.toString()));
+
     }
 
     private static HashMap<String, ZipSubmission> getZipSubmissions(HashMap<String, Infoview> classlist, String filename) {
@@ -49,10 +57,9 @@ public class Zip {
 
             switch(parts.length) {
                 case 1:
-                    // simple string no split found (no '-' or ':' found
                 case 2:
-                    // only one split found  (no '-' or ':' found
                 case 3:
+                    // format incorrect
                     break;
                 case 5:
                     file = parts[4].trim();
@@ -73,7 +80,16 @@ public class Zip {
                 files = zipSubmissions.get(studentNo.toLowerCase()).getFiles();
             }
             files.add(file);
+            System.out.println(studentNo);
             ZipSubmission zipSubmission = ZipSubmission.builder()
+                    .savSubmitted( getFor("sav",files))
+                    .spvSubmitted( getFor("spv",files))
+                    .xlsxSubmitted(getFor("xlsx",files))
+                    .snoSav( snoExists("sav", studentNo, files))
+                    .snoSpv( snoExists("spv", studentNo, files))
+                    .snoXlsx( snoExists("xlsx", studentNo, files))
+                    .type( type)
+                    .qtyFiles(files.size())
                     .studentNo(studentNo.toLowerCase())
                     .header(header)
                     .name(name)
@@ -81,12 +97,38 @@ public class Zip {
                     .files(files)
                     .build();
 
-            zipSubmissions.put(studentNo, zipSubmission);
+            if(zipSubmissions.containsKey(studentNo) && (zipSubmissions.get(studentNo.toLowerCase()) != null)) { // update
+                ZipSubmission updatedSubmission =  combineSubmissions(zipSubmission, zipSubmissions);
+                zipSubmissions.replace(studentNo.toLowerCase(), updatedSubmission);
+            } else { // add
+                zipSubmissions.put(studentNo.toLowerCase(), zipSubmission);
+            }
         }
 
-        zipSubmissions.forEach((key,value) -> System.out.println(key + "-> "+value) );
-
         return zipSubmissions;
+    }
+
+    private static ZipSubmission combineSubmissions(ZipSubmission newSubm, HashMap<String, ZipSubmission> zipSubmissions) {
+        ZipSubmission existSubm = zipSubmissions.get(newSubm.getStudentNo().toLowerCase());
+
+        ZipSubmission update = ZipSubmission.builder()
+                .savSubmitted( existSubm.isSavSubmitted() || newSubm.isSavSubmitted() )
+                .spvSubmitted( existSubm.isSpvSubmitted() || newSubm.isSpvSubmitted() )
+                .xlsxSubmitted( existSubm.isXlsxSubmitted() || newSubm.isXlsxSubmitted() )
+                .snoSav( existSubm.isSnoSav() || newSubm.isSnoSav() )
+                .snoSpv( existSubm.isSnoSav() || newSubm.isSnoSpv() )
+                .snoXlsx( existSubm.isSnoSav() || newSubm.isSnoXlsx() )
+                .type(type)
+                .qtyFiles( Math.max(existSubm.getQtyFiles(), newSubm.getQtyFiles()) )
+                .studentNo( newSubm.getStudentNo().toLowerCase() )
+                .header( newSubm.getHeader() )
+                .name( newSubm.getName() )
+                .date( newSubm.getDate() )
+                .files( newSubm.getFiles() )
+                .qtyBsSubmissions( existSubm.getQtyBsSubmissions()+1 )
+                .build();
+
+        return update;
     }
 
     public static List<String> readZip(String filename) {

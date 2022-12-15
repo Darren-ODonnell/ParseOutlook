@@ -15,11 +15,10 @@ import java.util.*;
 import Models.*;
 
 import static Models.Util.SIZE_STUDENT_NO;
+import static Models.Util.SPSS;
 
 public class Outlook {
 
-    public static final int SPSS = 1;
-    public static final int EXCEL = 2;
     public static int type = 0;
     Util util = new Util();
 
@@ -69,16 +68,83 @@ public class Outlook {
         if (folder.getContentCount() > 0) {
             PSTMessage email = (PSTMessage)folder.getNextChild();
             while (email != null) {
-                   System.out.println("Email: "+email.getNumberOfAttachments());
                 addSubmission(email);
-
-                if(email.getNumberOfAttachments() == 2) {
-                    System.out.println("Email: "+email.getAttachment(0).getLongFilename());
-                    System.out.println("Email: "+email.getAttachment(1).getLongFilename());
-                }
                 email = (PSTMessage)folder.getNextChild();
             }
         }
+        // need to process students with multiple submissions
+        // Delete earlier submission If later submissions have same files.
+        // if files are different, move files from old to new
+
+
+        for ( HashMap.Entry<String, List<Submission>> sub : submissions.entrySet() ) {
+            String key = sub.getKey();
+            List<Submission> subs = sub.getValue();
+
+            if(subs.size() > 1) {
+                subs = mergerSubmissions(subs);
+            }
+
+        }
+
+
+
+
+
+        submissions.forEach((key,value) -> {
+
+
+            System.out.println(key + "-> " + value.toString());
+        });
+
+
+
+
+
+        submissions.forEach((key,value) -> {
+            System.out.println(key + "-> " + value.toString());
+        });
+    }
+
+    private List<Submission> mergerSubmissions(List<Submission> subs) {
+
+        // sort list by latest
+
+        while (subs.size() > 1) {
+            Time time1 = subs.get(0).getTime();
+            Time time2 = subs.get(1).getTime();
+
+            switch(time1.compareTo(time2)) {
+                case -1:
+                    // make subs1 the master
+
+                    break;
+                case 0:
+                    // make subs1 the master
+                    break;
+                case 1:
+                    // make subs 1 the master
+
+                    break;
+            }
+
+            Submission sub1 = subs.get(0);
+            List<String> files1 = sub1.getFiles();
+            Submission sub2 = subs.get(1);
+            List<String> files2 = sub2.getFiles();
+            // files the same
+
+
+
+            // combine first two into first
+            // delete 2nd
+            // loop
+
+        }
+
+        subs.stream().sorted();
+
+        return subs;
     }
 
     private void addSubmission(PSTMessage email) {
@@ -109,6 +175,7 @@ public class Outlook {
                 .snoSpv( util.snoExists("spv",studentNo, files) )
                 .snoSav( util.snoExists("sav",studentNo, files) )
                 .snoXlsx( util.getFor("xlsx", files) )
+                .qtyEmails(1)
 
                 .date( getDate(emailDate) )
                 .time( getTime(emailDate) )
@@ -116,7 +183,12 @@ public class Outlook {
 
         // sno entry already exists
         if(submissions.containsKey(studentNo)) {
+            // change this block
+            // last submission is always the accepted submission.
+            List<Submission> subm = submissions.get(studentNo);
+
             List<Submission> subs = submissions.get(studentNo);
+            submission.setQtyEmails(submission.getQtyEmails()+1);
             subs.add(submission);
             submissions.replace(studentNo, subs);
         } else {

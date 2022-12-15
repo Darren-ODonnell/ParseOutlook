@@ -19,12 +19,11 @@ public class Util {
     public static final int SIZE_STUDENT_NO = 9;
     public static final String HOME_BASE_ADDRESS = "192.168";
 
-
-
-
     // Module Constants
     public static final boolean HOME = true;
     public static final boolean WORK = false;
+    public static final int SPSS = 1;
+    public static final int EXCEL = 2;
 
     // setup basepath for files
 
@@ -131,47 +130,51 @@ public class Util {
         return "";
     }
 
-    public boolean getFor(String extension, List<String> files) {
+    public static boolean getFor(String extension, List<String> files) {
         extension = extension.toLowerCase();
         for(String file : files) {
             file = file.toLowerCase();
-            String endOfFile = file.substring(file.length() -3);
-            switch (extension) {
-                case "xlsx":
-                    if(file.substring(file.length() -4).equals(extension))
-                        return true;
-                case "sav":
-                    if(endOfFile.equals(extension))
-                        return true;
-                case "spv":
-                    if(endOfFile.equals(extension))
-                        return true;
+            if (file.length() > 4) {
+                String endOfFile3 = file.substring(file.length() - 3);
+                String endOfFile4 = file.substring(file.length() - 4);
+                switch (extension.toLowerCase()) {
+                    case "sav":
+                        if (endOfFile3.equalsIgnoreCase(extension))
+                            return true;
+                    case "spv":
+                        if (endOfFile3.equalsIgnoreCase(extension))
+                            return true;
+                    case "xlsx":
+                        if (endOfFile4.equalsIgnoreCase(extension))
+                            return true;
+                }
             }
         }
         return false;
     }
 
-    public boolean snoExists(String extn, String studentNo, List<String> files) {
+    public static boolean snoExists(String extn, String studentNo, List<String> files) {
         String sno = studentNo.toLowerCase();
         String extension = extn.toLowerCase();
 
         for (String file : files) {
 //            file = file.toLowerCase();
-            String endOfFile = file.substring(file.length() - 3).toLowerCase();
-            switch (extension) {
-                case "xlsx":
-                    if (file.substring(file.length() - 4).equals(extension))
-                        if (file.contains(sno))
-                            return true;
-                    break;
-                case "sav":
-                case "spv":
-                    if (endOfFile.equals(extension))
-                        if (file.contains(sno))
-                            return true;
-                    break;
+            if(file.length()>10) {
+                String endOfFile = file.substring(file.length() - 3).toLowerCase();
+                switch (extension) {
+                    case "xlsx":
+                        if (file.substring(file.length() - 4).equals(extension))
+                            if (file.contains(sno))
+                                return true;
+                        break;
+                    case "sav":
+                    case "spv":
+                        if (endOfFile.equals(extension))
+                            if (file.contains(sno))
+                                return true;
+                        break;
+                }
             }
-
         }
         return false;
     }

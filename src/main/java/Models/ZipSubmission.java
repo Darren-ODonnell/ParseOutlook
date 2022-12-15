@@ -10,6 +10,7 @@ public class ZipSubmission {
     String header;
     String name;
     String date;
+    String time;
     List<String> files;
     int type       ;
     @Builder.Default
@@ -56,7 +57,7 @@ public class ZipSubmission {
     public void setDate(String date) { this.date      = date;    }
     public List<String> getFiles()  {  return files;    }
     public void setFiles(List<String> files) {  this.files     = files;    }
-    public String getStudentNo()     { return studentNo;  }
+    public String getStudentNo()     { return studentNo.toLowerCase();  }
     public void setStudentNo(String studentNo) {
         this.studentNo = studentNo;
     }
