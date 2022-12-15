@@ -76,7 +76,6 @@ public class Outlook {
         // Delete earlier submission If later submissions have same files.
         // if files are different, move files from old to new
 
-
         for ( HashMap.Entry<String, List<Submission>> sub : submissions.entrySet() ) {
             String key = sub.getKey();
             List<Submission> subs = sub.getValue();
@@ -84,26 +83,11 @@ public class Outlook {
             if(subs.size() > 1) {
                 subs = mergerSubmissions(subs);
             }
-
         }
-
-
-
-
-
-        submissions.forEach((key,value) -> {
-
-
-            System.out.println(key + "-> " + value.toString());
-        });
-
-
-
-
-
         submissions.forEach((key,value) -> {
             System.out.println(key + "-> " + value.toString());
         });
+
     }
 
     private List<Submission> mergerSubmissions(List<Submission> subs) {
@@ -113,14 +97,33 @@ public class Outlook {
         while (subs.size() > 1) {
             Time time1 = subs.get(0).getTime();
             Time time2 = subs.get(1).getTime();
+            Submission sub1 = subs.get(0);
+            List<String> files1 = sub1.getFiles();
+            Submission sub2 = subs.get(1);
+            List<String> files2 = sub2.getFiles();
 
             switch(time1.compareTo(time2)) {
                 case -1:
                     // make subs1 the master
 
+
+
+                    if(files1.contains(files2[0]))
+
+
+
+
                     break;
                 case 0:
                     // make subs1 the master
+
+
+
+
+
+                    files[0] = (files1[0].equals(files2[0])) ? files1[0] : files2[0];
+
+
                     break;
                 case 1:
                     // make subs 1 the master
@@ -128,10 +131,7 @@ public class Outlook {
                     break;
             }
 
-            Submission sub1 = subs.get(0);
-            List<String> files1 = sub1.getFiles();
-            Submission sub2 = subs.get(1);
-            List<String> files2 = sub2.getFiles();
+
             // files the same
 
 
