@@ -16,31 +16,36 @@ import static Models.Util.*;
 
 public class Zip {
 
-    static Util util = new Util();
-    public static int type = 0;
+    HashMap<String, ZipSubmission> zipSubmissions;
 
     public static void main(String[] args) {
-
-
-        // set paths based on Work or Home
         setBasePath();
+
+        // get classlist
+        HashMap<String, Infoview> classlist = classlist = Excel.getInfoviewList();
+
+        new Zip(TESTS_FOLDER + SPSS_T2_BRIGHTSPACE_ZIP, classlist);
+
+    }
+
+
+    public Zip(String filename,  HashMap<String, Infoview> classlist) {
 
 //        String spssT1A = "SPSS T1A.zip";   type = SPSS;
 //        String spssT1B = "SPSS T1B.zip";   type = SPSS;
-        String spssT2A = "SPSS T2.zip";   type = SPSS;
+//        String spssT2A = "SPSS T2.zip";    type = SPSS;
 //        String spssT2B = "SPSS T2B.zip";   type = SPSS;
 //        String excelT1A = "Excel T1A.zip"; type = EXCEL;
 //        String excelT2A = "Excel T2A.zip"; type = EXCEL;
 //        String excelT1B = "Excel T1B.zip"; type = EXCEL;
 //        String excelT2B = "Excel T2B.zip"; type = EXCEL;
 
-        HashMap<String, Infoview> classlist = Excel.getInfoviewList();
-        classlist.forEach((key, value) ->  System.out.println(key + " -> " + value.toString()) );
 
-        HashMap<String, ZipSubmission> zipSubmissions = getZipSubmissions(classlist, TESTS_FOLDER + spssT2A);
+//        classlist.forEach((key, value) ->  System.out.println(key + " -> " + value.toString()) );
 
-        zipSubmissions.forEach((key, value) -> System.out.println(key + " -> " + value.toString()));
+        zipSubmissions = getZipSubmissions(classlist, filename);
 
+//        zipSubmissions.forEach((key, value) -> System.out.println(key + " -> " + value.toString()));
     }
 
     private static HashMap<String, ZipSubmission> getZipSubmissions(HashMap<String, Infoview> classlist, String filename) {
@@ -82,9 +87,9 @@ public class Zip {
             files.add(file);
             System.out.println(studentNo);
             ZipSubmission zipSubmission = ZipSubmission.builder()
-                    .savSubmitted( getFor("sav",files))
-                    .spvSubmitted( getFor("spv",files))
-                    .xlsxSubmitted(getFor("xlsx",files))
+                    .savSubmitted( extnExists("sav",files))
+                    .spvSubmitted( extnExists("spv",files))
+                    .xlsxSubmitted(extnExists("xlsx",files))
                     .snoSav( snoExists("sav", studentNo, files))
                     .snoSpv( snoExists("spv", studentNo, files))
                     .snoXlsx( snoExists("xlsx", studentNo, files))

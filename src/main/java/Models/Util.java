@@ -10,8 +10,25 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Util {
+    public static final int SPSS_T1_ATT        = 20;
+    public static final int EXCEL_T1_ATT       = SPSS_T1_ATT + 2;
+    public static final int SPSS_T2_ATT        = 41;
+    public static final int EXCEL_T2_ATT       = SPSS_T2_ATT + 2;
 
-    public static final int STUDENTNO_ATTENDANCE = 3;
+
+    public static final String SPSS_T1_EMAIL_PST        = "SPSS T1 Email.pst";
+    public static final String SPSS_T1_BRIGHTSPACE_ZIP  = "SPSS T1 BS.zip";
+    public static final String EXCEL_T1_EMAIL_PST       = "EXCEL T1 Email.pst";
+    public static final String EXCEL_T1_BRIGHTSPACE_ZIP = "EXCEL T1 BS.zip";
+
+    public static final String SPSS_T2_EMAIL_PST        = "SPSS T2 Email.pst";
+    public static final String SPSS_T2_BRIGHTSPACE_ZIP  = "SPSS T2 BS.zip";
+    public static final String EXCEL_T2_EMAIL_PST       = "EXCEL T2 Email.pst";
+    public static final String EXCEL_T2_BRIGHTSPACE_ZIP = "EXCEL T2 BS.zip";
+
+    public static final int STUDENT_NO_ATTENDANCE = 3;
+    public static final int STUDENT_NAME_ATTENDANCE = 4;
+
     public static final int SPSS_ATTENDANCE = 41;
     public static final int EXCEL_ATTENDANCE = SPSS_ATTENDANCE + 2;
 
@@ -24,6 +41,9 @@ public class Util {
     public static final boolean WORK = false;
     public static final int SPSS = 1;
     public static final int EXCEL = 2;
+    public static int type = 0;
+    public final static int FIRST_TEST = 1;
+    public final static int SECOND_TEST = 2;
 
     // setup basepath for files
 
@@ -130,7 +150,7 @@ public class Util {
         return "";
     }
 
-    public static boolean getFor(String extension, List<String> files) {
+    public static boolean extnExists(String extension, List<String> files) {
         extension = extension.toLowerCase();
         for(String file : files) {
             file = file.toLowerCase();

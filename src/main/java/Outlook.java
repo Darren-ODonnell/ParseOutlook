@@ -1,4 +1,3 @@
-import Models.Result;
 import Models.SpssResult;
 import Models.Submission;
 import com.pff.PSTException;
@@ -16,14 +15,13 @@ import Models.*;
 
 import static Models.Util.SIZE_STUDENT_NO;
 import static Models.Util.SPSS;
+import static Models.Util.type;
 
 public class Outlook {
 
-    public static int type = 0;
-    Util util = new Util();
+
 
     HashMap<String, List<Submission>> submissions = new HashMap<>();
-
     HashMap<String,SpssResult>  results = new HashMap<>();
 
     public static void main(String[] args) {
@@ -34,17 +32,13 @@ public class Outlook {
         String excelT1file = "Excel T1 email.pst";
         String excelT2file = "Excel T2 email.pst";
 
-        type = SPSS;
+
         new Outlook(path + spssT2file);
 
-
-        // now excel
-//        type = EXCEL;
-//        new Outlook(path + excelT1file);
-//        System.out.println("Here");
     }
 
     public Outlook(String filename) {
+
         try {
             PSTFile pstFile = new PSTFile(filename);
             System.out.println(pstFile.getMessageStore().getDisplayName());
@@ -74,75 +68,32 @@ public class Outlook {
         }
         // need to process students with multiple submissions
         // Delete earlier submission If later submissions have same files.
-        // if files are different, move files from old to new
-
+        //
         for ( HashMap.Entry<String, List<Submission>> sub : submissions.entrySet() ) {
             String key = sub.getKey();
             List<Submission> subs = sub.getValue();
 
             if(subs.size() > 1) {
-                subs = mergerSubmissions(subs);
+                subs = mergeSubmissions(subs);
             }
         }
+
         submissions.forEach((key,value) -> {
             System.out.println(key + "-> " + value.toString());
         });
 
     }
 
-    private List<Submission> mergerSubmissions(List<Submission> subs) {
-
-        // sort list by latest
-
-        while (subs.size() > 1) {
-            Time time1 = subs.get(0).getTime();
-            Time time2 = subs.get(1).getTime();
-            Submission sub1 = subs.get(0);
-            List<String> files1 = sub1.getFiles();
-            Submission sub2 = subs.get(1);
-            List<String> files2 = sub2.getFiles();
-
-            switch(time1.compareTo(time2)) {
-                case -1:
-                    // make subs1 the master
-
-
-
-                    if(files1.contains(files2[0]))
-
-
-
-
-                    break;
-                case 0:
-                    // make subs1 the master
-
-
-
-
-
-                    files[0] = (files1[0].equals(files2[0])) ? files1[0] : files2[0];
-
-
-                    break;
-                case 1:
-                    // make subs 1 the master
-
-                    break;
-            }
-
-
-            // files the same
-
-
-
-            // combine first two into first
-            // delete 2nd
-            // loop
-
+    private List<Submission> mergeSubmissions(List<Submission> subs) {
+        // merge the files details between each submission into the first.
+        for(Submission sub : subs) {
+            subs.get(0).setSavSubmitted( subs.get(0).isSavSubmitted() || sub.isSavSubmitted());
+            subs.get(0).setSpvSubmitted( subs.get(0).isSpvSubmitted() || sub.isSpvSubmitted());
+            subs.get(0).setXlsxSubmitted( subs.get(0).isXlsxSubmitted() || sub.isXlsxSubmitted());
+            subs.get(0).setSnoSav( subs.get(0).isSnoSav() || sub.isSnoSav());
+            subs.get(0).setSnoSpv( subs.get(0).isSnoSpv() || sub.isSnoSpv());
+            subs.get(0).setSnoXlsx( subs.get(0).isSnoXlsx() || sub.isSnoXlsx());
         }
-
-        subs.stream().sorted();
 
         return subs;
     }
@@ -168,13 +119,13 @@ public class Outlook {
                 .studentName(email.getSenderName().substring(SIZE_STUDENT_NO + 1))
                 .qtyFiles( email.getNumberOfAttachments())
 
-                .savSubmitted( util.getFor("sav", files) )
-                .spvSubmitted( util.getFor("spv", files) )
-                .xlsxSubmitted( util.getFor("xlsx", files) )
+                .savSubmitted( Util.extnExists("sav", files) )
+                .spvSubmitted( Util.extnExists("spv", files) )
+                .xlsxSubmitted( Util.extnExists("xlsx", files) )
 
-                .snoSpv( util.snoExists("spv",studentNo, files) )
-                .snoSav( util.snoExists("sav",studentNo, files) )
-                .snoXlsx( util.getFor("xlsx", files) )
+                .snoSpv( Util.snoExists("spv",studentNo, files) )
+                .snoSav( Util.snoExists("sav",studentNo, files) )
+                .snoXlsx( Util.extnExists("xlsx", files) )
                 .qtyEmails(1)
 
                 .date( getDate(emailDate) )

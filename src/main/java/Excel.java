@@ -6,6 +6,7 @@ import org.apache.poi.xssf.usermodel.*;
 import static Models.Util.*;
 import Models.Infoview;
 import Excel.*;
+import Models.Attendance;
 
 public class Excel  {
 
@@ -16,6 +17,71 @@ public class Excel  {
         classlist = addAttendance(classlist,RESULTS_FOLDER + RESULTS_WB, ATTENDANCE_SHT, ATTENDANCE_RANGE);
 
         classlist.entrySet().forEach( entry -> System.out.println(entry.getKey() + " " + entry) );
+    }
+
+    public static HashMap<String, Attendance> getAttendance(int attendanceCell, String workbook, String worksheet, String range) {
+        HashMap<String, Attendance> attendance = new HashMap<>();
+
+        try {
+            File file = new File(workbook); //creating a new file instance
+            FileInputStream fis = new FileInputStream(file);//obtaining bytes from the file
+            // creating Workbook instance that refers to .xlsx file
+            XSSFWorkbook wb = new XSSFWorkbook(fis);
+            XSSFSheet sheet = wb.getSheet( worksheet );
+            FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
+
+            XSSFName namedRange = wb.getName(range);
+            String formula =  namedRange.getRefersToFormula();
+            RangeRef rr = new RangeRef(sheet, formula);
+
+            // for each row
+            // pick out studentno and attendance
+            // update classlist
+
+            int startRow = rr.getStart().getRowIndex()+1;
+            int endRow = rr.getEnd().getRowIndex()+1;
+
+            for ( int row = startRow; row < endRow; row++ ) {
+
+                if( checkCellValue(wb, sheet.getRow( row ).getCell( STUDENT_NO_ATTENDANCE ))
+                && checkCellValue(wb, sheet.getRow( row ).getCell( STUDENT_NAME_ATTENDANCE ) )) {
+
+
+
+                    Cell stdno = sheet.getRow( row ).getCell( STUDENT_NO_ATTENDANCE );
+                    Cell stdname = sheet.getRow( row ).getCell( STUDENT_NAME_ATTENDANCE );
+                    Cell att = sheet.getRow( row ).getCell( attendanceCell );
+
+                    eval.evaluate( stdno );
+                    eval.evaluate( att );
+                    eval.evaluate( stdname );
+
+                    String studentNo = stdno.getStringCellValue();
+                    String studentName = stdname.getStringCellValue();
+
+                    if(!studentNo.equals("")) { // skip over cells with no student number
+                        int test_attendance = 999;
+                        if (att != null) {
+                            test_attendance = (int) att.getNumericCellValue();
+                        }
+                        Attendance attend = Attendance.builder()
+                                .studentNo(studentNo)
+                                .studentName(studentName)
+                                .attendance(test_attendance)
+                                .build();
+
+                        attendance.put(studentNo, attend);
+                    } else {
+                        System.out.println("Empty Student Row cell at: " + row);
+                    }
+                } else {
+                    System.out.println("Null Cell found at: " + row);
+                }
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        return attendance;
     }
 
     private static HashMap<String, ClasslistRow> addAttendance(HashMap<String, ClasslistRow> classlist, String workbook, String worksheet, String range) {
@@ -41,9 +107,9 @@ public class Excel  {
 
             for ( int row = startRow; row < endRow; row++ ) {
 
-                if( checkCellValue(wb, sheet.getRow( row ).getCell( STUDENTNO_ATTENDANCE )) ) {
+                if( checkCellValue(wb, sheet.getRow( row ).getCell(STUDENT_NO_ATTENDANCE)) ) {
 
-                    Cell stdno = sheet.getRow( row ).getCell( STUDENTNO_ATTENDANCE );
+                    Cell stdno = sheet.getRow( row ).getCell(STUDENT_NO_ATTENDANCE);
                     Cell att = sheet.getRow( row ).getCell( SPSS_ATTENDANCE );
                     eval.evaluate( stdno );
                     eval.evaluate( att );
@@ -76,8 +142,8 @@ public class Excel  {
                 case BOOLEAN:
                 case NUMERIC:
                 case STRING:
+                    return cell.getStringCellValue().length()>=0;
                 case BLANK:
-                    return true;
                 case ERROR:
                     return false;
             }
@@ -182,4 +248,5 @@ public class Excel  {
 
         return listRow;
     }
+
 }
