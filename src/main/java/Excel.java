@@ -65,12 +65,12 @@ public class Excel  {
                             test_attendance = (int) att.getNumericCellValue();
                         }
                         Attendance attend = Attendance.builder()
-                                .studentNo(studentNo)
+                                .studentNo(studentNo.toLowerCase())
                                 .studentName(studentName)
                                 .attendance(test_attendance)
                                 .build();
 
-                        attendance.put(studentNo, attend);
+                        attendance.put(studentNo.toLowerCase(), attend);
                     } else {
                         System.out.println("Empty Student Row cell at: " + row);
                     }

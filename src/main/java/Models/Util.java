@@ -56,7 +56,8 @@ public class Util {
     public static String TESTS_FOLDER = "";
     public static String RESULTS_FOLDER = "";
 
-    // Inforview Indices
+    // Infoview Indices
+
     public static final int INFOVIEW_CLASS_ROLL_NO   =0;
     public static final int INFOVIEW_STUDENT_NO      =3;
     public static final int INFOVIEW_ADDRESS         =5;

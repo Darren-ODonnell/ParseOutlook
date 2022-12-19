@@ -69,7 +69,17 @@ public class ZipSubmission {
                 ", header='" + header + '\'' +
                 ", name='" + name + '\'' +
                 ", date='" + date + '\'' +
+                ", time='" + time + '\'' +
                 ", files=" + files +
+                ", type=" + type +
+                ", xlsxSubmitted=" + xlsxSubmitted +
+                ", savSubmitted=" + savSubmitted +
+                ", spvSubmitted=" + spvSubmitted +
+                ", snoXlsx=" + snoXlsx +
+                ", snoSav=" + snoSav +
+                ", snoSpv=" + snoSpv +
+                ", qtyFiles=" + qtyFiles +
+                ", qtyBsSubmissions=" + qtyBsSubmissions +
                 '}';
     }
 }

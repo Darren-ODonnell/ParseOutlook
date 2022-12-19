@@ -13,9 +13,7 @@ public class ClasslistRow {
         return sno;
     }
 
-    public void setSno(String sno) {
-        this.sno = sno;
-    }
+    public void setSno(String sno) { this.sno = sno.toLowerCase(); }
 
     public String getSurnameFirtsname() {
         return surnameFirtsname;

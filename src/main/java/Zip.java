@@ -93,7 +93,7 @@ public class Zip {
                     .snoSav( snoExists("sav", studentNo, files))
                     .snoSpv( snoExists("spv", studentNo, files))
                     .snoXlsx( snoExists("xlsx", studentNo, files))
-                    .type( type)
+                    .type( type )
                     .qtyFiles(files.size())
                     .studentNo(studentNo.toLowerCase())
                     .header(header)

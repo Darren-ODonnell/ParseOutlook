@@ -7,10 +7,13 @@ import java.util.List;
 
 @Builder
 public class Submission implements Comparable<Submission> {
-    List<String> files;
-    String studentName;
-    String studentNo;
-    int type       ;
+    private List<String> files;
+    private String studentName;
+    private String studentNo;
+    private int type       ;
+    private Date date;
+    private Time time;
+
     @Builder.Default
     boolean xlsxSubmitted = false;
     @Builder.Default
@@ -28,8 +31,6 @@ public class Submission implements Comparable<Submission> {
     @Builder.Default
     int qtyEmails        = 0;
 
-    Date date;
-    Time time;
 
     public List<String> getFiles() {
         return files;
