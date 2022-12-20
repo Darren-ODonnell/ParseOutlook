@@ -160,8 +160,8 @@ public class Main {
         List<String> sortedkeys = new ArrayList<>(results.keySet());
         Collections.sort(sortedkeys);
 
-        for(Object key : sortedkeys) {
-            System.out.println(key.toString() + " -> " +results.get(key).toString());
+        for(String key : sortedkeys) {
+            System.out.println(key + " -> " +results.get(key).toString());
         }
     }
 
