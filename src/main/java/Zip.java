@@ -53,8 +53,12 @@ public class Zip {
         List<String> fileContent = readZip(filename);
         HashMap<String, ZipSubmission> zipSubmissions = new HashMap<>();
 
+
         for(String student : fileContent) {
-            String[] parts = student.split("[-/?]");
+
+            String[] parts = student.split("[-/?]",5);
+
+
             String header = "";
             String name = "";
             String date = "";
@@ -67,7 +71,7 @@ public class Zip {
                     // format incorrect
                     break;
                 case 5:
-                    file = parts[4].trim();
+                    file = parts[4].trim().toLowerCase();
                 case 4:
                     // two splits found - no file
                     header = parts[0]+"-"+parts[1].trim();
@@ -80,11 +84,11 @@ public class Zip {
             }
 
             List<String> files = new ArrayList<>();
-            String studentNo = findStudentNo(classlist, name, file);
+            String studentNo = findStudentNo(classlist, name, file).toLowerCase();
             if(zipSubmissions.containsKey(studentNo.toLowerCase())) {
                 files = zipSubmissions.get(studentNo.toLowerCase()).getFiles();
             }
-            files.add(file);
+            files.add(file.toLowerCase());
             System.out.println(studentNo);
             ZipSubmission zipSubmission = ZipSubmission.builder()
                     .savSubmitted( extnExists("sav",files))
@@ -108,6 +112,7 @@ public class Zip {
             } else { // add
                 zipSubmissions.put(studentNo.toLowerCase(), zipSubmission);
             }
+            System.out.println(student + " - " + zipSubmissions.size());
         }
 
         return zipSubmissions;

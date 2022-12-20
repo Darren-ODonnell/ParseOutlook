@@ -1,5 +1,5 @@
 import Models.SpssResult;
-import Models.Submission;
+import Models.EmailSubmission;
 import com.pff.PSTException;
 import com.pff.PSTFile;
 import com.pff.PSTFolder;
@@ -14,14 +14,11 @@ import java.util.*;
 import Models.*;
 
 import static Models.Util.SIZE_STUDENT_NO;
-import static Models.Util.SPSS;
 import static Models.Util.type;
 
 public class Outlook {
 
-
-
-    HashMap<String, List<Submission>> submissions = new HashMap<>();
+    HashMap<String, List<EmailSubmission>> submissions = new HashMap<>();
     HashMap<String,SpssResult>  results = new HashMap<>();
 
     public static void main(String[] args) {
@@ -31,7 +28,6 @@ public class Outlook {
         String spssT2file = "SPSS T2 email.pst";
         String excelT1file = "Excel T1 email.pst";
         String excelT2file = "Excel T2 email.pst";
-
 
         new Outlook(path + spssT2file);
 
@@ -69,9 +65,9 @@ public class Outlook {
         // need to process students with multiple submissions
         // Delete earlier submission If later submissions have same files.
         //
-        for ( HashMap.Entry<String, List<Submission>> sub : submissions.entrySet() ) {
+        for ( HashMap.Entry<String, List<EmailSubmission>> sub : submissions.entrySet() ) {
             String key = sub.getKey();
-            List<Submission> subs = sub.getValue();
+            List<EmailSubmission> subs = sub.getValue();
 
             if(subs.size() > 1) {
                 subs = mergeSubmissions(subs);
@@ -84,9 +80,9 @@ public class Outlook {
 
     }
 
-    private List<Submission> mergeSubmissions(List<Submission> subs) {
+    private List<EmailSubmission> mergeSubmissions(List<EmailSubmission> subs) {
         // merge the files details between each submission into the first.
-        for(Submission sub : subs) {
+        for(EmailSubmission sub : subs) {
             subs.get(0).setSavSubmitted( subs.get(0).isSavSubmitted() || sub.isSavSubmitted());
             subs.get(0).setSpvSubmitted( subs.get(0).isSpvSubmitted() || sub.isSpvSubmitted());
             subs.get(0).setXlsxSubmitted( subs.get(0).isXlsxSubmitted() || sub.isXlsxSubmitted());
@@ -99,33 +95,33 @@ public class Outlook {
     }
 
     private void addSubmission(PSTMessage email) {
-        List<String> files = new ArrayList<>();
-
-        boolean sav = false;
-        boolean spv = false;
-        boolean xlsx = false;
-
-        boolean snoSav = false;
-        boolean snoSpv = false;
-        boolean snoXlsx = false;
-
+        List<String> files = getFiles( email );
         String studentNo = email.getSenderName().substring(0,SIZE_STUDENT_NO).toLowerCase();
+
+        boolean savSubmitted = Util.extnExists("sav", files);
+        boolean spvSubmitted = Util.extnExists("spv", files);
+        boolean xlsxSubmitted = Util.extnExists("xlsx", files);
+
+        boolean snoSav = Util.snoExists("sav",studentNo, files);
+        boolean snoSpv = Util.snoExists("spv",studentNo, files);
+        boolean snoXlsx = Util.snoExists("xlsx",studentNo, files);
+
         String emailDate = String.valueOf(email.getClientSubmitTime());
 
-        Submission submission = Submission.builder()
+        EmailSubmission submission = EmailSubmission.builder()
                 .type( type ) // SPSS or Excel submission
-                .files( getFiles(email) )
+                .files( files )
                 .studentNo( studentNo )
                 .studentName(email.getSenderName().substring(SIZE_STUDENT_NO + 1))
-                .qtyFiles( email.getNumberOfAttachments())
+                .qtyFiles( files.size() )
 
-                .savSubmitted( Util.extnExists("sav", files) )
-                .spvSubmitted( Util.extnExists("spv", files) )
-                .xlsxSubmitted( Util.extnExists("xlsx", files) )
+                .savSubmitted( savSubmitted )
+                .spvSubmitted( spvSubmitted )
+                .xlsxSubmitted( xlsxSubmitted )
 
-                .snoSpv( Util.snoExists("spv",studentNo, files) )
-                .snoSav( Util.snoExists("sav",studentNo, files) )
-                .snoXlsx( Util.extnExists("xlsx", files) )
+                .snoSpv( snoSpv )
+                .snoSav( snoSav )
+                .snoXlsx( snoXlsx )
                 .qtyEmails(1)
 
                 .date( getDate(emailDate) )
@@ -136,14 +132,14 @@ public class Outlook {
         if(submissions.containsKey(studentNo)) {
             // change this block
             // last submission is always the accepted submission.
-            List<Submission> subm = submissions.get(studentNo);
+            List<EmailSubmission> subm = submissions.get(studentNo);
 
-            List<Submission> subs = submissions.get(studentNo);
+            List<EmailSubmission> subs = submissions.get(studentNo);
             submission.setQtyEmails(submission.getQtyEmails()+1);
             subs.add(submission);
             submissions.replace(studentNo, subs);
         } else {
-            List<Submission> subs = new ArrayList<>();
+            List<EmailSubmission> subs = new ArrayList<>();
             subs.add(submission);
             submissions.put(studentNo, subs);
         }
@@ -189,7 +185,7 @@ public class Outlook {
         for (int i = 0; i< fileCount; i++) {
             try {
                 String file = email.getAttachment(i).getLongFilename();
-                files.add(file);
+                files.add(file.toLowerCase());
             } catch (PSTException | IOException e) {
                 throw new RuntimeException(e);
             }
