@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.util.HashMap;
 import org.apache.poi.xssf.usermodel.*;
 import static Models.Util.*;
+
 import Models.Infoview;
 import Excel.*;
 import Models.Attendance;
@@ -39,26 +40,26 @@ public class Excel  {
             // update classlist
 
             int startRow = rr.getStart().getRowIndex()+1;
-            int endRow = rr.getEnd().getRowIndex()+1;
+            int endRow = rr.getEnd().getRowIndex();
 
             for ( int row = startRow; row < endRow; row++ ) {
+                Row currentRow = sheet.getRow(row);
 
-                if( checkCellValue(wb, sheet.getRow( row ).getCell( STUDENT_NO_ATTENDANCE ))
-                && checkCellValue(wb, sheet.getRow( row ).getCell( STUDENT_NAME_ATTENDANCE ) )) {
+                Cell snoAtt = currentRow.getCell(STUDENT_NO_ATTENDANCE);
+                Cell sNameAtt = currentRow.getCell(STUDENT_NAME_ATTENDANCE);
 
+                if( checkCellValue(wb, snoAtt) && checkCellValue(wb, sNameAtt)) {
 
-
-                    Cell stdno = sheet.getRow( row ).getCell( STUDENT_NO_ATTENDANCE );
-                    Cell stdname = sheet.getRow( row ).getCell( STUDENT_NAME_ATTENDANCE );
-                    Cell att = sheet.getRow( row ).getCell( attendanceCell );
+                    Cell stdno = currentRow.getCell( STUDENT_NO_ATTENDANCE );
+                    Cell stdname = currentRow.getCell( STUDENT_NAME_ATTENDANCE );
+                    Cell att = currentRow.getCell( attendanceCell );
 
                     eval.evaluate( stdno );
                     eval.evaluate( att );
                     eval.evaluate( stdname );
 
-                    String studentNo = stdno.getStringCellValue();
-                    String studentName = stdname.getStringCellValue();
-
+                    String studentNo = getValue(wb,stdno); // return empty string if error
+                    String studentName = getValue(wb,stdname); // return empty string if error
                     if(!studentNo.equals("")) { // skip over cells with no student number
                         int test_attendance = 999;
                         if (att != null) {
@@ -83,6 +84,22 @@ public class Excel  {
         }
         return attendance;
     }
+
+    private static String getValue(XSSFWorkbook wb, Cell stdno) {
+        FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
+        CellValue res = eval.evaluate(stdno);
+
+        if( res != null ) {
+            switch (res.getCellType()) {
+                case FORMULA:
+                    return res.getStringValue();
+                default:
+                    return "";
+            }
+        }
+        return "";
+    }
+
 
     private static HashMap<String, ClasslistRow> addAttendance(HashMap<String, ClasslistRow> classlist, String workbook, String worksheet, String range) {
 
@@ -133,18 +150,22 @@ public class Excel  {
         return classlist;
     }
 
-    private static boolean checkCellValue( XSSFWorkbook wb, Cell cell) {
+    private static boolean checkCellValue(XSSFWorkbook wb, Cell cell) {
         // skip any null/empty values or error values
+
         FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
-        CellType type = eval.evaluateFormulaCell(cell);
+        CellType type = cell.getCellType();
+
         if( cell != null ) {
             switch (type) {
+                case FORMULA:
+                    return eval.evaluate(cell).getStringValue().length()>0;
                 case BOOLEAN:
                 case NUMERIC:
                 case STRING:
-                    return cell.getStringCellValue().length()>=0;
                 case BLANK:
                 case ERROR:
+                case _NONE:
                     return false;
             }
         }
