@@ -2,6 +2,8 @@ import org.apache.poi.ss.usermodel.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.HashMap;
+import java.util.List;
+
 import org.apache.poi.xssf.usermodel.*;
 import static Models.Util.*;
 
@@ -15,9 +17,7 @@ public class Excel  {
         setBasePath();
 
         HashMap<String, ClasslistRow> classlist = getClasslist(TESTS_FOLDER + CLASSLIST_WB, CLASSLIST_SHT, CLASSLIST_RANGE);
-        classlist = addAttendance(classlist,RESULTS_FOLDER + RESULTS_WB, ATTENDANCE_SHT, ATTENDANCE_RANGE);
-
-        classlist.entrySet().forEach( entry -> System.out.println(entry.getKey() + " " + entry) );
+        HashMap<String,Attendance> attendance = getAttendance(EXCEL_T2_ATT-1, RESULTS_FOLDER + RESULTS_WB, ATTENDANCE_SHT, ATTENDANCE_RANGE);
     }
 
     public static HashMap<String, Attendance> getAttendance(int attendanceCell, String workbook, String worksheet, String range) {
@@ -45,36 +45,21 @@ public class Excel  {
             for ( int row = startRow; row < endRow; row++ ) {
                 Row currentRow = sheet.getRow(row);
 
-                Cell snoAtt = currentRow.getCell(STUDENT_NO_ATTENDANCE);
-                Cell sNameAtt = currentRow.getCell(STUDENT_NAME_ATTENDANCE);
+//                Cell snoAtt = currentRow.getCell(STUDENT_NO_ATTENDANCE);
+//                Cell sNameAtt = currentRow.getCell(STUDENT_NAME_ATTENDANCE);
+                String studentNo = checkCellValue(currentRow, eval, STUDENT_NO_ATTENDANCE);
+                if( studentNo.length() > 0 ) {
+                    String studentName = getStringValue( currentRow, eval, STUDENT_NAME_ATTENDANCE);
+                    int test_attendance = getIntValue( currentRow, eval, attendanceCell);
 
-                if( checkCellValue(wb, snoAtt) && checkCellValue(wb, sNameAtt)) {
+                    // skip over cells with no student number
+                    Attendance attend = Attendance.builder()
+                            .studentNo(studentNo.toLowerCase())
+                            .studentName(studentName)
+                            .attendance(test_attendance)
+                            .build();
 
-                    Cell stdno = currentRow.getCell( STUDENT_NO_ATTENDANCE );
-                    Cell stdname = currentRow.getCell( STUDENT_NAME_ATTENDANCE );
-                    Cell att = currentRow.getCell( attendanceCell );
-
-                    eval.evaluate( stdno );
-                    eval.evaluate( att );
-                    eval.evaluate( stdname );
-
-                    String studentNo = getValue(wb,stdno); // return empty string if error
-                    String studentName = getValue(wb,stdname); // return empty string if error
-                    if(!studentNo.equals("")) { // skip over cells with no student number
-                        int test_attendance = 999;
-                        if (att != null) {
-                            test_attendance = (int) att.getNumericCellValue();
-                        }
-                        Attendance attend = Attendance.builder()
-                                .studentNo(studentNo.toLowerCase())
-                                .studentName(studentName)
-                                .attendance(test_attendance)
-                                .build();
-
-                        attendance.put(studentNo.toLowerCase(), attend);
-                    } else {
-                        System.out.println("Empty Student Row cell at: " + row);
-                    }
+                    attendance.put(studentNo.toLowerCase(), attend);
                 } else {
                     System.out.println("Null Cell found at: " + row);
                 }
@@ -85,13 +70,14 @@ public class Excel  {
         return attendance;
     }
 
-    private static String getValue(XSSFWorkbook wb, Cell stdno) {
-        FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
-        CellValue res = eval.evaluate(stdno);
+    private static String getStringValue(Row row, FormulaEvaluator eval, int column) {
+        Cell cell = row.getCell( column );
+        CellValue res = eval.evaluate( cell );
 
         if( res != null ) {
             switch (res.getCellType()) {
                 case FORMULA:
+                case STRING:
                     return res.getStringValue();
                 default:
                     return "";
@@ -100,76 +86,43 @@ public class Excel  {
         return "";
     }
 
+    private static int getIntValue(Row row, FormulaEvaluator eval, int column) {
+        Cell cell = row.getCell( column );
+        CellValue res = eval.evaluate(cell);
 
-    private static HashMap<String, ClasslistRow> addAttendance(HashMap<String, ClasslistRow> classlist, String workbook, String worksheet, String range) {
-
-        try {
-            File file = new File(workbook); //creating a new file instance
-            FileInputStream fis = new FileInputStream(file);//obtaining bytes from the file
-            // creating Workbook instance that refers to .xlsx file
-            XSSFWorkbook wb = new XSSFWorkbook(fis);
-            XSSFSheet sheet = wb.getSheet( worksheet );
-            FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
-
-            XSSFName namedRange = wb.getName(range);
-            String formula =  namedRange.getRefersToFormula();
-            RangeRef rr = new RangeRef(sheet, formula);
-
-            // for each row
-            // pick out studentno and attendance
-            // update classlist
-
-            int startRow = rr.getStart().getRowIndex()+1;
-            int endRow = rr.getEnd().getRowIndex()+1;
-
-            for ( int row = startRow; row < endRow; row++ ) {
-
-                if( checkCellValue(wb, sheet.getRow( row ).getCell(STUDENT_NO_ATTENDANCE)) ) {
-
-                    Cell stdno = sheet.getRow( row ).getCell(STUDENT_NO_ATTENDANCE);
-                    Cell att = sheet.getRow( row ).getCell( SPSS_ATTENDANCE );
-                    eval.evaluate( stdno );
-                    eval.evaluate( att );
-
-                    String studentNo = stdno.getStringCellValue();
-                    Integer attendance = 999;
-                    if( att != null ) {
-                        attendance = (int) att.getNumericCellValue();
-                    }
-
-                    if(classlist.containsKey(studentNo.toLowerCase())) {
-                        classlist.get(studentNo.toLowerCase()).setAttendance(attendance);
-                    }
-                } else {
-                    System.out.println("Null found at: " + row);
-                }
+        if( res != null ) {
+            switch (res.getCellType()) {
+                case FORMULA:
+                case NUMERIC:
+                    return (int) res.getNumberValue();
+                default:
+                    return 999;
             }
-        } catch(Exception e) {
-            e.printStackTrace();
         }
-        return classlist;
+        return 999;
     }
 
-    private static boolean checkCellValue(XSSFWorkbook wb, Cell cell) {
-        // skip any null/empty values or error values
 
-        FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
-        CellType type = cell.getCellType();
 
-        if( cell != null ) {
-            switch (type) {
+
+    private static String checkCellValue(Row row, FormulaEvaluator eval, int column) {
+
+        CellType cellType = row.getCell(column).getCellType();
+
+        if( cellType != null ) {
+            switch (cellType) {
                 case FORMULA:
-                    return eval.evaluate(cell).getStringValue().length()>0;
+                    return eval.evaluate(row.getCell(column)).getStringValue();
                 case BOOLEAN:
                 case NUMERIC:
                 case STRING:
                 case BLANK:
                 case ERROR:
                 case _NONE:
-                    return false;
+                    return "";
             }
         }
-        return false;
+        return "";
     }
 
     public static HashMap<String, ClasslistRow> getClasslist(String classlistWb, String classlistSht, String classlistRange) {

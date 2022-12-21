@@ -56,7 +56,7 @@ public class Main {
 //                postResults(type, test);
 
                 type = EXCEL;
-                attendance = Excel.getAttendance(EXCEL_T2_ATT, RESULTS_FOLDER + RESULTS_WB, ATTENDANCE_SHT, ATTENDANCE_RANGE);
+                attendance = Excel.getAttendance(EXCEL_T2_ATT-1, RESULTS_FOLDER + RESULTS_WB, ATTENDANCE_SHT, ATTENDANCE_RANGE);
                 Outlook excelOutlookT2 = new Outlook(TESTS_FOLDER + EXCEL_T2_EMAIL_PST);
                 submissions = excelOutlookT2.submissions;
                 Zip excelZipT2 = new Zip(TESTS_FOLDER + EXCEL_T2_BRIGHTSPACE_ZIP, classlist);
