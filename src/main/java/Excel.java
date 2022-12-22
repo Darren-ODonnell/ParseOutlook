@@ -2,7 +2,6 @@ import org.apache.poi.ss.usermodel.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.HashMap;
-import java.util.List;
 
 import org.apache.poi.xssf.usermodel.*;
 import static Models.Util.*;
@@ -39,20 +38,33 @@ public class Excel  {
             // pick out studentno and attendance
             // update classlist
 
-            int startRow = rr.getStart().getRowIndex()+1;
             int endRow = rr.getEnd().getRowIndex();
+            int startRow = rr.getStart().getRowIndex();
 
-            for ( int row = startRow; row < endRow; row++ ) {
+            for ( int row = startRow-1; row < endRow; row++ ) {
                 Row currentRow = sheet.getRow(row);
+                String studentNo = getStringValue( currentRow, eval, STUDENT_NO_ATTENDANCE);
 
-//                Cell snoAtt = currentRow.getCell(STUDENT_NO_ATTENDANCE);
-//                Cell sNameAtt = currentRow.getCell(STUDENT_NAME_ATTENDANCE);
-                String studentNo = checkCellValue(currentRow, eval, STUDENT_NO_ATTENDANCE);
                 if( studentNo.length() > 0 ) {
                     String studentName = getStringValue( currentRow, eval, STUDENT_NAME_ATTENDANCE);
                     int test_attendance = getIntValue( currentRow, eval, attendanceCell);
+                    String a1 = "" + getCellValue(currentRow.getCell(4), eval);
+                    String a2 = "" + getCellValue(currentRow.getCell(5), eval);
+                    String a = "" + getCellValue(currentRow.getCell(6), eval);
+                    String b = "" + getCellValue(currentRow.getCell(7), eval);
+                    String c = "" + getCellValue(currentRow.getCell(8), eval);
+                    String d = "" + getCellValue(currentRow.getCell(9), eval);
+                    String s = "" + getCellValue(currentRow.getCell(10), eval);
 
-                    // skip over cells with no student number
+
+
+
+                    System.out.println("Row: "+ row + " - " + studentNo + " - " + studentName + " - " + test_attendance);
+
+
+
+//                    displayRow(currentRow, eval);
+
                     Attendance attend = Attendance.builder()
                             .studentNo(studentNo.toLowerCase())
                             .studentName(studentName)
@@ -60,7 +72,7 @@ public class Excel  {
                             .build();
 
                     attendance.put(studentNo.toLowerCase(), attend);
-                } else {
+                } else { // skip over cells with no student number
                     System.out.println("Null Cell found at: " + row);
                 }
             }
@@ -70,6 +82,44 @@ public class Excel  {
         return attendance;
     }
 
+    private static void displayRow(Row cRow, FormulaEvaluator eval) {
+        String rowStr = "";
+
+        String a = getCellValue(cRow.getCell(0), eval);
+        String b = getCellValue(cRow.getCell(1), eval);
+        String c = getCellValue(cRow.getCell(2), eval);
+        String d = getCellValue(cRow.getCell(3), eval);
+        String e = getCellValue(cRow.getCell(4), eval);
+
+        rowStr = a + " " + b + " " + c + " " + d + " " + e + " ";
+
+        for (int col = 5; col < cRow.getLastCellNum(); col++) {
+            try {
+                rowStr += getCellValue(cRow.getCell(col), eval) + " ";
+            } catch(Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+        System.out.println(rowStr);
+    }
+
+    public static String getCellValue(Cell cell, FormulaEvaluator eval) {
+
+        CellValue abc = eval.evaluate(cell);
+        CellType cType = cell.getCellType();
+        switch(abc.getCellType()) {
+            case STRING:
+                return cell.getStringCellValue();
+            case NUMERIC:
+                return "" + cell.getNumericCellValue();
+            case ERROR:
+                return "";
+        }
+
+        return "";
+    }
+
+
     private static String getStringValue(Row row, FormulaEvaluator eval, int column) {
         Cell cell = row.getCell( column );
         CellValue res = eval.evaluate( cell );
@@ -77,6 +127,7 @@ public class Excel  {
         if( res != null ) {
             switch (res.getCellType()) {
                 case FORMULA:
+                    return "" + eval.evaluate(cell);
                 case STRING:
                     return res.getStringValue();
                 default:
@@ -101,9 +152,6 @@ public class Excel  {
         }
         return 999;
     }
-
-
-
 
     private static String checkCellValue(Row row, FormulaEvaluator eval, int column) {
 
