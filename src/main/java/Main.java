@@ -33,7 +33,7 @@ public class Main {
                 Zip spssZipT1 = new Zip(TESTS_FOLDER + SPSS_T1_BRIGHTSPACE_ZIP, classlist);
                 zipSubmissions = spssZipT1.zipSubmissions;
                 spssResults = getSpssResults(submissions, zipSubmissions, attendance, classlist, type);
-                postResults(type, test);
+                Excel.postSpssResults(spssResults, FIRST_TEST);
 
                 type = EXCEL;
                 attendance = Excel.getAttendance(EXCEL_T1_ATT, RESULTS_FOLDER + RESULTS_WB, ATTENDANCE_SHT, ATTENDANCE_RANGE);
@@ -42,58 +42,59 @@ public class Main {
                 Zip excelZipT1 = new Zip(TESTS_FOLDER + EXCEL_T1_BRIGHTSPACE_ZIP, classlist);
                 zipSubmissions = excelZipT1.zipSubmissions;
                 excelResults = getExcelResults(submissions, zipSubmissions, attendance, classlist, type);
-                postResults(type, test);
+//                Excel.postResults(excelResults, FIRST_TEST);
 
                 break;
             case SECOND_TEST:
                 type = SPSS;
-//                attendance = Excel.getAttendance(SPSS_T2_ATT, RESULTS_FOLDER + RESULTS_WB, ATTENDANCE_SHT, ATTENDANCE_RANGE);
-//                Outlook spssOutlookT2 = new Outlook(TESTS_FOLDER + SPSS_T2_EMAIL_PST);
-//                submissions = spssOutlookT2.submissions;
-//                Zip spssZipT2 = new Zip(TESTS_FOLDER + SPSS_T2_BRIGHTSPACE_ZIP, classlist);
-//                zipSubmissions = spssZipT2.zipSubmissions;
-//                spssResults = getSpssResults(submissions, zipSubmissions, attendance, classlist, type);
-//                postResults(type, test);
+                attendance = Excel.getAttendance(SPSS_T2_ATT, RESULTS_FOLDER + RESULTS_WB, ATTENDANCE_SHT, ATTENDANCE_RANGE);
+                Outlook spssOutlookT2 = new Outlook(TESTS_FOLDER + SPSS_T2_EMAIL_PST);
+                submissions = spssOutlookT2.submissions;
+                Zip spssZipT2 = new Zip(TESTS_FOLDER + SPSS_T2_BRIGHTSPACE_ZIP, classlist);
+                zipSubmissions = spssZipT2.zipSubmissions;
+                spssResults = getSpssResults(submissions, zipSubmissions, attendance, classlist, type);
+                Excel.postSpssResults(spssResults, SECOND_TEST);
 
-                type = EXCEL;
-                attendance = Excel.getAttendance(EXCEL_T2_ATT, RESULTS_FOLDER + RESULTS_WB, ATTENDANCE_SHT, ATTENDANCE_RANGE);
-                Outlook excelOutlookT2 = new Outlook(TESTS_FOLDER + EXCEL_T2_EMAIL_PST);
-                submissions = excelOutlookT2.submissions;
-                Zip excelZipT2 = new Zip(TESTS_FOLDER + EXCEL_T2_BRIGHTSPACE_ZIP, classlist);
-                zipSubmissions = excelZipT2.zipSubmissions;
-                excelResults = getExcelResults(submissions, zipSubmissions, attendance, classlist, type);
-                printResults(excelResults);
-//                postResults(type, test);
+//                type = EXCEL;
+//                attendance = Excel.getAttendance(EXCEL_T2_ATT, RESULTS_FOLDER + RESULTS_WB, ATTENDANCE_SHT, ATTENDANCE_RANGE);
+//                Outlook excelOutlookT2 = new Outlook(TESTS_FOLDER + EXCEL_T2_EMAIL_PST);
+//                submissions = excelOutlookT2.submissions;
+//                Zip excelZipT2 = new Zip(TESTS_FOLDER + EXCEL_T2_BRIGHTSPACE_ZIP, classlist);
+//                zipSubmissions = excelZipT2.zipSubmissions;
+//                excelResults = getExcelResults(submissions, zipSubmissions, attendance, classlist, type);
+//                printResults(excelResults);
+//                Excel.postResults(excelResults, SECOND_TEST);
 
                 break;
         }
 
     }
 
-    private static void postResults(int type, int test) {
-
-        switch(test) {
-            case FIRST_TEST:
-                switch(type) {
-                    case SPSS:
-
-                        break;
-                    case EXCEL:
-                        break;
-
-                }
-            case SECOND_TEST:
-                switch(type) {
-                    case SPSS:
-                        break;
-                    case EXCEL:
-                        break;
-
-                }
-
-        }
-
-    }
+//    private static void postResults(int type, int test) {
+//
+//        switch(test) {
+//            case FIRST_TEST:
+//                switch(type) {
+//                    case SPSS:
+//
+//                        break;
+//                    case EXCEL:
+//                        break;
+//
+//                }
+//            case SECOND_TEST:
+//                switch(type) {
+//                    case SPSS:
+//                        System.out.println(spssResults);
+//                        break;
+//                    case EXCEL:
+//                        break;
+//
+//                }
+//
+//        }
+//
+//    }
 
     private static  HashMap<String, ExcelResult> getExcelResults(HashMap<String, List<EmailSubmission>> submissions,
                                                HashMap<String, ZipSubmission> zipSubmissions,
@@ -170,19 +171,64 @@ public class Main {
                                                               HashMap<String, Attendance> attendance,
                                                               HashMap<String, Infoview> classlist, int type) {
         HashMap<String, SpssResult> results = new HashMap<>();
-        for (Map.Entry<String, Infoview> studentNo : classlist.entrySet()) {
-            EmailSubmission sub = submissions.get(studentNo).get(0);
-            ZipSubmission zSub = zipSubmissions.get(studentNo);
+        for (Map.Entry<String, Infoview>  student : classlist.entrySet()) {
+            int bsSub = 0;
+            int emSub = 0;
+            EmailSubmission sub = null;
+            ZipSubmission zSub = null;
+            boolean savSubE = false;
+            boolean spvSubE = false;
+            boolean savSnoE = false;
+            boolean spvSnoE = false;
+            boolean savSubB = false;
+            boolean spvSubB = false;
+            boolean savSnoB = false;
+            boolean spvSnoB = false;
+            int bsFiles = 0;
+            int emFiles = 0;
+            String studentNo = student.getValue().getStudentNo();
 
+            // check brightspace submission
+            if(! submissions.containsKey(studentNo) ) continue; // skip over where no submissions exist
+            else
+                if(submissions.get(studentNo).size() == 0) {
+                    emFiles = 0;
+                    emSub = 0;
+
+                } else {
+                    sub = submissions.get(studentNo).get(0);
+                    emSub = (submissions.get(studentNo).get(0) .getQtyFiles()>0) ? 1 : 0;
+
+                    savSubE = sub.isSavSubmitted();
+                    savSnoE = sub.isSnoSav();
+                    spvSubE = sub.isSpvSubmitted();
+                    spvSnoE = sub.isSnoSpv();
+                    emFiles = sub.getQtyFiles();
+
+                }
+            // check emailSubmission
+            if(zipSubmissions.containsKey(studentNo))     {
+                bsSub = (zipSubmissions.get(studentNo) != null) ? 1 : 0;
+                zSub = zipSubmissions.get(studentNo);
+                savSubB = zSub.isSavSubmitted();
+                savSnoB = zSub.isSnoSav();
+                spvSubB = zSub.isSpvSubmitted();
+                spvSnoB = zSub.isSnoSpv();
+                bsFiles = zSub.getQtyFiles();
+
+            }
+
+            System.out.println(studentNo);
             SpssResult spssResult = SpssResult.builder()
                     .attendance(attendance.get(studentNo).getAttendance())
-                    .brightspaceSubmission((zSub.getQtyBsSubmissions() == 0) ? 0 : 1)
-                    .emailSubmission((sub.getQtyEmails() == 0) ? 0 : 1)
-                    .savSubmitted((sub.isSavSubmitted()) ? 1 : 0)
-                    .spvSubmitted((sub.isSpvSubmitted()) ? 1 : 0)
-                    .savSno((sub.isSnoSav()) ? 1 : 0)
-                    .spvSno((sub.isSnoSpv()) ? 1 : 0)
-                    .IncorrectFilesSubmitted((sub.getQtyFiles()==2) ? 1 : 0)
+                    .brightspaceSubmission(bsSub)
+                    .emailSubmission(emSub)
+                    .savSubmitted( (savSubE || savSubB) ? 1 : 0)
+                    .spvSubmitted( (spvSubE || spvSubB) ? 1 : 0)
+                    .sno(savSnoE && spvSnoB ? 1 : 0)
+                    .savSno( (savSnoE || savSnoB) ? 1 : 0)
+                    .spvSno( (spvSnoE || spvSnoB) ? 1 : 0)
+                    .IncorrectFilesSubmitted((emFiles == 2) || (bsFiles == 2) ? 1 : 0)
                     .build();
 
             results.put(String.valueOf(studentNo), spssResult);
@@ -190,4 +236,7 @@ public class Main {
         }
         return results;
     }
+
+
+
 }

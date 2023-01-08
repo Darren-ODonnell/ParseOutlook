@@ -13,6 +13,7 @@ public class SpssResult extends Result {
     int spvSubmitted = 0;
     int savSno = 0;
     int spvSno = 0;
+    int sno = 0;
 
     @Override
     public String toString() {
@@ -21,6 +22,7 @@ public class SpssResult extends Result {
                 ", spvSubmitted=" + spvSubmitted +
                 ", savSno=" + savSno +
                 ", spvSno=" + spvSno +
+                ", sno=" + sno +
                 ", studentNo='" + studentNo + '\'' +
                 ", filesSubmitted=" + filesSubmitted +
                 ", attendance=" + attendance +

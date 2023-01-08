@@ -10,12 +10,14 @@ import lombok.experimental.SuperBuilder;
 public class ExcelResult extends Result {
 
     int xlsxSubmitted = 0;
+    int sno = 0;
     int xlsxSno = 0;
 
     @Override
     public String toString() {
         return "ExcelResult{" +
                 "xlsxSubmitted=" + xlsxSubmitted +
+                ", sno=" + sno +
                 ", xlsxSno=" + xlsxSno +
                 ", studentNo='" + studentNo + '\'' +
                 ", filesSubmitted=" + filesSubmitted +

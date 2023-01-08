@@ -1,14 +1,13 @@
+import Models.*;
 import org.apache.poi.ss.usermodel.*;
-import java.io.File;
-import java.io.FileInputStream;
+
+import java.io.*;
 import java.util.HashMap;
 
 import org.apache.poi.xssf.usermodel.*;
 import static Models.Util.*;
 
-import Models.Infoview;
 import Excel.*;
-import Models.Attendance;
 
 public class Excel  {
 
@@ -48,22 +47,8 @@ public class Excel  {
                 if( studentNo.length() > 0 ) {
                     String studentName = getStringValue( currentRow, eval, STUDENT_NAME_ATTENDANCE);
                     int test_attendance = getIntValue( currentRow, eval, attendanceCell);
-                    String a1 = "" + getCellValue(currentRow.getCell(4), eval);
-                    String a2 = "" + getCellValue(currentRow.getCell(5), eval);
-                    String a = "" + getCellValue(currentRow.getCell(6), eval);
-                    String b = "" + getCellValue(currentRow.getCell(7), eval);
-                    String c = "" + getCellValue(currentRow.getCell(8), eval);
-                    String d = "" + getCellValue(currentRow.getCell(9), eval);
-                    String s = "" + getCellValue(currentRow.getCell(10), eval);
-
-
-
 
                     System.out.println("Row: "+ row + " - " + studentNo + " - " + studentName + " - " + test_attendance);
-
-
-
-//                    displayRow(currentRow, eval);
 
                     Attendance attend = Attendance.builder()
                             .studentNo(studentNo.toLowerCase())
@@ -82,26 +67,6 @@ public class Excel  {
         return attendance;
     }
 
-    private static void displayRow(Row cRow, FormulaEvaluator eval) {
-        String rowStr = "";
-
-        String a = getCellValue(cRow.getCell(0), eval);
-        String b = getCellValue(cRow.getCell(1), eval);
-        String c = getCellValue(cRow.getCell(2), eval);
-        String d = getCellValue(cRow.getCell(3), eval);
-        String e = getCellValue(cRow.getCell(4), eval);
-
-        rowStr = a + " " + b + " " + c + " " + d + " " + e + " ";
-
-        for (int col = 5; col < cRow.getLastCellNum(); col++) {
-            try {
-                rowStr += getCellValue(cRow.getCell(col), eval) + " ";
-            } catch(Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-        System.out.println(rowStr);
-    }
 
     public static String getCellValue(Cell cell, FormulaEvaluator eval) {
 
@@ -270,5 +235,166 @@ public class Excel  {
 
         return listRow;
     }
+
+    public static XSSFWorkbook getWorkbook(String filename) {
+        XSSFWorkbook wb = null;
+        File file = new File(RESULTS_FOLDER + RESULTS_WB); //creating a new file instance
+        FileInputStream fis = null;//obtaining bytes from the file
+        try {
+            fis = new FileInputStream(file);
+            wb = new XSSFWorkbook(fis);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        // creating Workbook instance that refers to .xlsx file
+        return wb;
+    }
+
+
+    public static void postSpssResults(HashMap<String, SpssResult> results, int test) {
+        XSSFWorkbook wb = null;
+        try {
+            wb = getWorkbook(RESULTS_FOLDER + RESULTS_WB);
+
+            int startRow = getStartRow(wb);
+            int endRow = getEndRow(wb);
+
+            XSSFSheet sheet = wb.getSheet( ATTENDANCE_TESTS_SHEET );
+            FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
+
+//            XSSFName namedRange = wb.getName(ATTENDANCE_TESTS_RANGE);
+//            String formula =  namedRange.getRefersToFormula();
+//            RangeRef rr = new RangeRef(sheet, formula);
+
+            // for each row in worksheet - find data for that studnet and write to file.
+
+            // open files and sheet
+
+//            int endRow = rr.getEnd().getRowIndex();
+//            int startRow = rr.getStart().getRowIndex();
+
+            int studentNoCol = ATTENDANCE_TESTS_STUDENT_NO_COL;
+
+            int emSubCol = (test == 1) ? SPSS1_ATT_TEST_EM_SUB : SPSS2_ATT_TEST_EM_SUB;
+            int qtyFilesCol = (test == 1) ? SPSS1_ATT_TEST_QTY_FILES : SPSS2_ATT_TEST_QTY_FILES;
+            int snoCol = (test == 1) ? SPSS1_ATT_TEST_SNO : SPSS2_ATT_TEST_SNO;
+            int savCol = (test == 1) ? SPSS1_ATT_TEST_SAV : SPSS2_ATT_TEST_SAV;
+            int spvCol = (test == 1) ? SPSS1_ATT_TEST_SPV : SPSS2_ATT_TEST_SPV;
+            int bsSubCol =  (test == 1) ? SPSS1_ATT_TEST_BS_SUB : SPSS2_ATT_TEST_BS_SUB;
+
+            for ( int row = startRow-1; row < endRow; row++ ) {
+                Row currentRow = sheet.getRow(row);
+                String studentNo = currentRow.getCell(ATTENDANCE_TESTS_STUDENT_NO_COL).getStringCellValue().toLowerCase();
+
+                if(results.containsKey(studentNo)) {
+                    SpssResult result = results.get(studentNo);
+                    currentRow.getCell(emSubCol).setCellValue(result.getEmailSubmission());
+                    currentRow.getCell(qtyFilesCol).setCellValue(result.getFilesSubmitted());
+                    currentRow.getCell(snoCol).setCellValue((result.getSno()));
+                    currentRow.getCell(savCol).setCellValue(result.getSavSubmitted());
+                    currentRow.getCell(spvCol).setCellValue(result.getSpvSubmitted());
+                    currentRow.getCell(bsSubCol).setCellValue(result.getBrightspaceSubmission());
+                }
+                break;
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
+        if(wb != null)
+            writeExcelFile( wb );
+        else
+            System.out.println("wb is null");
+
+    }
+
+    private static int getEndRow(XSSFWorkbook wb) {
+        XSSFName namedRange = wb.getName(ATTENDANCE_TESTS_RANGE);
+        String formula =  namedRange.getRefersToFormula();
+        XSSFSheet sheet = wb.getSheet( ATTENDANCE_TESTS_SHEET );
+        RangeRef rr = new RangeRef(sheet, formula);
+        return rr.getEnd().getRowIndex();
+    }
+
+    private static int getStartRow(XSSFWorkbook wb) {
+        XSSFName namedRange = wb.getName(ATTENDANCE_TESTS_RANGE);
+        String formula =  namedRange.getRefersToFormula();
+        XSSFSheet sheet = wb.getSheet( ATTENDANCE_TESTS_SHEET );
+        RangeRef rr = new RangeRef(sheet, formula);
+        return rr.getStart().getRowIndex();
+
+    }
+
+
+    public static void postExcelResults(HashMap<String, ExcelResult> results, int test) {
+        XSSFWorkbook wb = null;
+        try {
+            File file = new File(RESULTS_FOLDER + RESULTS_WB); //creating a new file instance
+            FileInputStream fis = new FileInputStream(file);//obtaining bytes from the file
+            // creating Workbook instance that refers to .xlsx file
+            wb = new XSSFWorkbook(fis);
+            XSSFSheet sheet = wb.getSheet( ATTENDANCE_TESTS_SHEET );
+            FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
+
+            XSSFName namedRange = wb.getName(ATTENDANCE_TESTS_RANGE);
+            String formula =  namedRange.getRefersToFormula();
+            RangeRef rr = new RangeRef(sheet, formula);
+
+            // for each row in worksheet - find data for that studnet and write to file.
+
+            // open files and sheet
+
+            int endRow = rr.getEnd().getRowIndex();
+            int startRow = rr.getStart().getRowIndex();
+            int studentNoCol = ATTENDANCE_TESTS_STUDENT_NO_COL;
+
+            int emSubCol = (test == 1) ? SPSS1_ATT_TEST_EM_SUB : SPSS2_ATT_TEST_EM_SUB;
+            int qtyFilesCol = (test == 1) ? SPSS1_ATT_TEST_QTY_FILES : SPSS2_ATT_TEST_QTY_FILES;
+            int snoCol = (test == 1) ? SPSS1_ATT_TEST_SNO : SPSS2_ATT_TEST_SNO;
+            int savCol = (test == 1) ? SPSS1_ATT_TEST_SAV : SPSS2_ATT_TEST_SAV;
+            int spvCol = (test == 1) ? SPSS1_ATT_TEST_SPV : SPSS2_ATT_TEST_SPV;
+            int bsSubCol =  (test == 1) ? SPSS1_ATT_TEST_BS_SUB : SPSS2_ATT_TEST_BS_SUB;
+
+            for ( int row = startRow-1; row < endRow; row++ ) {
+                Row currentRow = sheet.getRow(row);
+                String studentNo = currentRow.getCell(ATTENDANCE_TESTS_STUDENT_NO_COL).getStringCellValue().toLowerCase();
+
+                if(results.containsKey(studentNo)) {
+                    ExcelResult result = results.get(studentNo);
+                    currentRow.getCell(emSubCol).setCellValue(result.getEmailSubmission());
+                    currentRow.getCell(qtyFilesCol).setCellValue(result.getFilesSubmitted());
+                    currentRow.getCell(snoCol).setCellValue((result.getSno()));
+                    currentRow.getCell(bsSubCol).setCellValue(result.getBrightspaceSubmission());
+                }
+                break;
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
+        if(wb != null)
+            writeExcelFile( wb );
+        else
+            System.out.println("wb is null");
+
+    }
+
+
+
+
+    public static void writeExcelFile(XSSFWorkbook wb) {
+
+        try {
+            FileOutputStream outputStream = new FileOutputStream(RESULTS_FOLDER + RESULTS_WB);
+            wb.write(outputStream);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
 }

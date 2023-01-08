@@ -32,6 +32,38 @@ public class Util {
     public static final int SPSS_ATTENDANCE = 41;
     public static final int EXCEL_ATTENDANCE = SPSS_ATTENDANCE + 2;
 
+    public static final String ATTENDANCE_TESTS_SHEET = "Attendance Tests";
+    public static final int ATTENDANCE_TESTS_START_ROW = 6;
+    public static final int ATTENDANCE_TESTS_STUDENT_NO_COL = 4;
+
+    public static final String ATTENDANCE_TESTS_RANGE =  "attendancetests";
+
+    // column positions in 'Attendance Sheet'
+    public static final int SPSS1_ATT_TEST_EM_SUB = 8;
+    public static final int SPSS1_ATT_TEST_QTY_FILES = SPSS1_ATT_TEST_EM_SUB + 1 ;
+    public static final int SPSS1_ATT_TEST_SNO      = SPSS1_ATT_TEST_EM_SUB + 2;
+    public static final int SPSS1_ATT_TEST_SAV      = SPSS1_ATT_TEST_EM_SUB + 3;
+    public static final int SPSS1_ATT_TEST_SPV      = SPSS1_ATT_TEST_EM_SUB + 4;
+    public static final int SPSS1_ATT_TEST_BS_SUB   = SPSS1_ATT_TEST_EM_SUB + 5;
+
+    public static final int EXCEL1_ATT_TEST_EM_SUB = 17;
+    public static final int EXCEL1_ATT_TEST_QTY_FILES = EXCEL1_ATT_TEST_EM_SUB + 1 ;
+    public static final int EXCEL1_ATT_TEST_SNO = EXCEL1_ATT_TEST_EM_SUB + 2;
+    public static final int EXCEL1_ATT_TEST_BS_SUB = EXCEL1_ATT_TEST_EM_SUB + 3;
+
+    public static final int SPSS2_ATT_TEST_EM_SUB = 24;
+
+    public static final int SPSS2_ATT_TEST_QTY_FILES = SPSS2_ATT_TEST_EM_SUB + 1 ;
+    public static final int SPSS2_ATT_TEST_SNO = SPSS2_ATT_TEST_EM_SUB + 2;
+    public static final int SPSS2_ATT_TEST_SAV = SPSS2_ATT_TEST_EM_SUB + 3;
+    public static final int SPSS2_ATT_TEST_SPV = SPSS2_ATT_TEST_EM_SUB + 4;
+    public static final int SPSS2_ATT_TEST_BS_SUB = SPSS2_ATT_TEST_EM_SUB + 5;
+
+    public static final int EXCEL2_ATT_TEST_EM_SUB = 33;
+    public static final int EXCEL2_ATT_TEST_QTY_FILES = EXCEL2_ATT_TEST_EM_SUB + 1 ;
+    public static final int EXCEL2_ATT_TEST_SNO = EXCEL2_ATT_TEST_EM_SUB + 2;
+    public static final int EXCEL2_ATT_TEST_MS_SUB = EXCEL2_ATT_TEST_EM_SUB + 3;
+
 
     public static final int SIZE_STUDENT_NO = 9;
     public static final String HOME_BASE_ADDRESS = "192.168";
