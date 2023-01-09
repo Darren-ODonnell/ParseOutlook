@@ -55,7 +55,7 @@ public class Main {
                 type = SPSS;
                 System.out.println("Read Attendance");
                 attendance = excel.getAttendance(SPSS_T2_ATT);
-                System.out.println("Attendance Rad - Present: " + attendance.size());
+                System.out.println("Attendance Read - Present: " + attendance.size());
 
 //                Outlook spssOutlookT2 = new Outlook(TESTS_FOLDER + SPSS_T2_EMAIL_PST);
 //                submissions = spssOutlookT2.submissions;
