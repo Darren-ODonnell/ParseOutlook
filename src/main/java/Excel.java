@@ -1,9 +1,12 @@
 import Models.*;
+import org.apache.logging.log4j.core.tools.picocli.CommandLine;
 import org.apache.poi.ss.usermodel.*;
 
 import java.io.*;
 import java.util.HashMap;
 
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.*;
 import static Models.Util.*;
 
@@ -11,34 +14,32 @@ import Excel.*;
 
 public class Excel  {
 
-    public static void main(String[]args) {
-        setBasePath();
+    ExcelWorkbook instance = ExcelWorkbook.getInstance();
+    public static XSSFWorkbook wb = ExcelWorkbook.getInstance().wb;
 
-        HashMap<String, ClasslistRow> classlist = getClasslist(TESTS_FOLDER + CLASSLIST_WB, CLASSLIST_SHT, CLASSLIST_RANGE);
-        HashMap<String,Attendance> attendance = getAttendance(EXCEL_T2_ATT-1, RESULTS_FOLDER + RESULTS_WB, ATTENDANCE_SHT, ATTENDANCE_RANGE);
+
+
+    public Excel() {
     }
 
-    public static HashMap<String, Attendance> getAttendance(int attendanceCell, String workbook, String worksheet, String range) {
+//    public static void main(String[]args) {
+//
+//        setBasePath();
+//
+//        HashMap<String, ClasslistRow> classlist = getClasslist(TESTS_FOLDER + CLASSLIST_WB, CLASSLIST_SHT, CLASSLIST_RANGE);
+//        HashMap<String,Attendance> attendance = getAttendance(EXCEL_T2_ATT-1, RESULTS_FOLDER + RESULTS_WB, ATTENDANCE_SHT, ATTENDANCE_RANGE);
+//    }
+
+    public HashMap<String, Attendance> getAttendance(int attendanceCell) {
         HashMap<String, Attendance> attendance = new HashMap<>();
 
         try {
-            File file = new File(workbook); //creating a new file instance
-            FileInputStream fis = new FileInputStream(file);//obtaining bytes from the file
-            // creating Workbook instance that refers to .xlsx file
-            XSSFWorkbook wb = new XSSFWorkbook(fis);
-            XSSFSheet sheet = wb.getSheet( worksheet );
+
+            XSSFSheet sheet = wb.getSheet( ATTENDANCE_SHT );
             FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
 
-            XSSFName namedRange = wb.getName(range);
-            String formula =  namedRange.getRefersToFormula();
-            RangeRef rr = new RangeRef(sheet, formula);
-
-            // for each row
-            // pick out studentno and attendance
-            // update classlist
-
-            int endRow = rr.getEnd().getRowIndex();
-            int startRow = rr.getStart().getRowIndex();
+            int startRow = getStartRow(sheet, ATTENDANCE_RANGE);
+            int endRow = getEndRow(sheet, ATTENDANCE_RANGE);
 
             for ( int row = startRow-1; row < endRow; row++ ) {
                 Row currentRow = sheet.getRow(row);
@@ -67,8 +68,7 @@ public class Excel  {
         return attendance;
     }
 
-
-    public static String getCellValue(Cell cell, FormulaEvaluator eval) {
+    public  String getCellValue(Cell cell, FormulaEvaluator eval) {
 
         CellValue abc = eval.evaluate(cell);
         CellType cType = cell.getCellType();
@@ -84,8 +84,7 @@ public class Excel  {
         return "";
     }
 
-
-    private static String getStringValue(Row row, FormulaEvaluator eval, int column) {
+    private  String getStringValue(Row row, FormulaEvaluator eval, int column) {
         Cell cell = row.getCell( column );
         CellValue res = eval.evaluate( cell );
 
@@ -138,7 +137,7 @@ public class Excel  {
         return "";
     }
 
-    public static HashMap<String, ClasslistRow> getClasslist(String classlistWb, String classlistSht, String classlistRange) {
+    public  HashMap<String, ClasslistRow> getClasslist(String classlistWb, String classlistSht, String classlistRange) {
 
         HashMap<String, ClasslistRow> classlist = new HashMap<>();
 
@@ -174,36 +173,39 @@ public class Excel  {
         return listRow;
     }
 
-    private static String getStudentNo(Row row) {
+    private String getStudentNo(Row row) {
         return row.getCell( 0 ).getStringCellValue().toLowerCase();
     }
 
-    private static String getName(Row row) {
+    private String getName(Row row) {
         return row.getCell(INFOVIEW_FULLNAME_MIN).getStringCellValue().toLowerCase();
     }
-    public static HashMap<String, Infoview> getInfoviewList() {
+
+    public HashMap<String, Infoview> getInfoviewList() {
 
         HashMap<String, Infoview> classlistByName = new HashMap<>();
         HashMap<String, Infoview> classlistBySno = new HashMap<>();
 
         try {
-            File file = new File(RESULTS_FOLDER + RESULTS_WB);//creating a new file instance
-            FileInputStream fis = new FileInputStream(file);//obtaining bytes from the file
-            // creating Workbook instance that refers to .xlsx/xlsm file
-            XSSFWorkbook wb = new XSSFWorkbook(fis);
+
             XSSFSheet sheet = wb.getSheet( INFOVIEW_SHT );
             FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
 
-            XSSFName namedRange = wb.getName(INFOVIEW_RANGE);
-            String formula =  namedRange.getRefersToFormula();
-            RangeRef rr = new RangeRef(sheet, formula);
-
-            int startRow = rr.getStart().getRowIndex()+1;
-            int endRow = rr.getEnd().getRowIndex();
+            int startRow = getStartRow(sheet, INFOVIEW_RANGE);
+            int endRow = getEndRow(sheet, INFOVIEW_RANGE);
 
             for(int vRow = startRow; vRow < endRow-1; vRow++) {
 
-                if((sheet.getRow(vRow) != null) && sheet.getRow(vRow).getCell(INFOVIEW_STUDENT_NO).getStringCellValue().length()>0) {
+                Row r = sheet.getRow(vRow);
+//                Cell cc0 = r.getCell(0);
+//                Cell cc1 = r.getCell(1);
+//                Cell cc2 = r.getCell(2);
+//                Cell cc3 = r.getCell(INFOVIEW_STUDENT_NO);
+//                Cell cc4 = r.getCell(4);
+//                Cell cc5 = r.getCell(5);
+
+                if((sheet.getRow(vRow) != null) &&
+                        sheet.getRow(vRow).getCell(INFOVIEW_STUDENT_NO).getStringCellValue().length() > 0) {
 
                     Infoview info = getInfoviewRow(wb, sheet.getRow(vRow));
                     String name = info.getFullnameMax().toLowerCase();
@@ -218,7 +220,7 @@ public class Excel  {
         return classlistByName;
     }
 
-    public static Infoview getInfoviewRow( XSSFWorkbook wb, Row row) {
+    public Infoview getInfoviewRow( XSSFWorkbook wb, Row row) {
         FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
 
         Infoview listRow = Infoview.builder()
@@ -236,7 +238,7 @@ public class Excel  {
         return listRow;
     }
 
-    public static XSSFWorkbook getWorkbook(String filename) {
+    public XSSFWorkbook getWorkbook() {
         XSSFWorkbook wb = null;
         File file = new File(RESULTS_FOLDER + RESULTS_WB); //creating a new file instance
         FileInputStream fis = null;//obtaining bytes from the file
@@ -252,28 +254,14 @@ public class Excel  {
         return wb;
     }
 
+    public void postSpssResults(HashMap<String, SpssResult> results, int test) {
 
-    public static void postSpssResults(HashMap<String, SpssResult> results, int test) {
-        XSSFWorkbook wb = null;
         try {
-            wb = getWorkbook(RESULTS_FOLDER + RESULTS_WB);
-
-            int startRow = getStartRow(wb);
-            int endRow = getEndRow(wb);
-
             XSSFSheet sheet = wb.getSheet( ATTENDANCE_TESTS_SHEET );
             FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
 
-//            XSSFName namedRange = wb.getName(ATTENDANCE_TESTS_RANGE);
-//            String formula =  namedRange.getRefersToFormula();
-//            RangeRef rr = new RangeRef(sheet, formula);
-
-            // for each row in worksheet - find data for that studnet and write to file.
-
-            // open files and sheet
-
-//            int endRow = rr.getEnd().getRowIndex();
-//            int startRow = rr.getStart().getRowIndex();
+            int startRow = getStartRow(sheet, ATTENDANCE_TESTS_RANGE);
+            int endRow = getEndRow(sheet, ATTENDANCE_TESTS_RANGE);
 
             int studentNoCol = ATTENDANCE_TESTS_STUDENT_NO_COL;
 
@@ -310,27 +298,49 @@ public class Excel  {
 
     }
 
-    private static int getEndRow(XSSFWorkbook wb) {
-        XSSFName namedRange = wb.getName(ATTENDANCE_TESTS_RANGE);
+    private int getEndRow(XSSFSheet sheet, String rangeName) {
+        XSSFName namedRange = wb.getName( rangeName );
         String formula =  namedRange.getRefersToFormula();
-        XSSFSheet sheet = wb.getSheet( ATTENDANCE_TESTS_SHEET );
-        RangeRef rr = new RangeRef(sheet, formula);
-        return rr.getEnd().getRowIndex();
+        String[] parts1 = formula.split("!",2);
+        CellRangeAddress cra = createCorrectCellRangeAddress(parts1[1]);
+        return cra.getLastRow();
+
+//        XSSFName namedRange = wb.getName( rangeName );
+//        String formula =  namedRange.getRefersToFormula();
+//        RangeRef rr = new RangeRef(sheet, formula);
+//
+//        Cell end = rr.getEnd();
+//        int endRow =  end.getRowIndex();
+//
+//        return rr.getEnd().getRowIndex();
     }
 
-    private static int getStartRow(XSSFWorkbook wb) {
-        XSSFName namedRange = wb.getName(ATTENDANCE_TESTS_RANGE);
+    private int getStartRow(XSSFSheet sheet, String rangeName) {
+
+
+        XSSFName namedRange = wb.getName( rangeName );
         String formula =  namedRange.getRefersToFormula();
-        XSSFSheet sheet = wb.getSheet( ATTENDANCE_TESTS_SHEET );
-        RangeRef rr = new RangeRef(sheet, formula);
-        return rr.getStart().getRowIndex();
+        String[] parts1 = formula.split("!",2);
+        CellRangeAddress cra = createCorrectCellRangeAddress(parts1[1]);
+        return cra.getFirstRow();
+
+//        String range = parts1[1];
+//        String[] parts2 = range.split(":");
+//        String start = parts2[1];
+//        XSSFName namedRange = wb.getName( rangeName );
+//        String formula =  namedRange.getRefersToFormula();
+//        RangeRef rr = new RangeRef(sheet, formula);
+
+//        return rr.getStart().getRowIndex();
 
     }
 
 
-    public static void postExcelResults(HashMap<String, ExcelResult> results, int test) {
+    public void postExcelResults(HashMap<String, ExcelResult> results, int test) {
         XSSFWorkbook wb = null;
         try {
+
+
             File file = new File(RESULTS_FOLDER + RESULTS_WB); //creating a new file instance
             FileInputStream fis = new FileInputStream(file);//obtaining bytes from the file
             // creating Workbook instance that refers to .xlsx file
@@ -381,10 +391,7 @@ public class Excel  {
 
     }
 
-
-
-
-    public static void writeExcelFile(XSSFWorkbook wb) {
+    public void writeExcelFile(XSSFWorkbook wb) {
 
         try {
             FileOutputStream outputStream = new FileOutputStream(RESULTS_FOLDER + RESULTS_WB);
@@ -396,5 +403,15 @@ public class Excel  {
         }
     }
 
+    protected CellRangeAddress createCorrectCellRangeAddress(String addressString) {
+        final String[] split = addressString.split(":");
+        final CellReference cr1 = new CellReference(split[0]);
+        final CellReference cr2 = new CellReference(split[1]);
+        int r1 = cr1.getRow() > cr2.getRow() ? cr2.getRow()-1 : cr1.getRow()-1;
+        int r2 = cr1.getRow() > cr2.getRow() ? cr1.getRow()-1 : cr2.getRow()-1;
+        int c1 = cr1.getCol() > cr2.getCol() ? cr2.getCol()-1 : cr1.getCol()-1;
+        int c2 = cr1.getCol() > cr2.getCol() ? cr1.getCol()-1 : cr2.getCol()-1;
+        return new CellRangeAddress(r1, r2, c1, c2);
+    }
 
 }

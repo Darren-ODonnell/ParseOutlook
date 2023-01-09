@@ -1,6 +1,6 @@
 import Models.Infoview;
-import Models.Util;
 import Models.ZipSubmission;
+
 
 import java.io.File;
 import java.io.IOException;
@@ -18,15 +18,15 @@ public class Zip {
 
     HashMap<String, ZipSubmission> zipSubmissions;
 
-    public static void main(String[] args) {
-        setBasePath();
-
-        // get classlist
-        HashMap<String, Infoview> classlist = classlist = Excel.getInfoviewList();
-
-        new Zip(TESTS_FOLDER + SPSS_T2_BRIGHTSPACE_ZIP, classlist);
-
-    }
+//    public static void main(String[] args) {
+//        setBasePath();
+//
+//        // get classlist
+//        HashMap<String, Infoview> classlist = classlist = excel.getInfoviewList();
+//
+//        new Zip(TESTS_FOLDER + SPSS_T2_BRIGHTSPACE_ZIP, classlist);
+//
+//    }
 
 
     public Zip(String filename,  HashMap<String, Infoview> classlist) {

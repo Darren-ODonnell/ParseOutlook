@@ -2,6 +2,7 @@ import Models.*;
 import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 
+
 import java.util.*;
 
 import static Models.Util.*;
@@ -15,55 +16,60 @@ public class Main {
 
     public static void main(String[] args) {
         // util.java has all the filename definitions
+        setBasePath();
+        Excel excel = new Excel();
 
         HashMap<String, List<EmailSubmission>> submissions;
         HashMap<String, ZipSubmission> zipSubmissions;
 
+        ExcelWorkbook instance = ExcelWorkbook.getInstance();
+
         int test = 2;
 
         setBasePath();
-        classlist = Excel.getInfoviewList();
+
+        classlist = excel.getInfoviewList();
 
         switch(test) {
             case FIRST_TEST :
                 type = SPSS;
-                attendance = Excel.getAttendance(SPSS_T1_ATT, RESULTS_FOLDER + RESULTS_WB, ATTENDANCE_SHT, ATTENDANCE_RANGE);
+                attendance = excel.getAttendance(SPSS_T1_ATT);
                 Outlook spssOutlookT1 = new Outlook(TESTS_FOLDER + SPSS_T1_EMAIL_PST);
                 submissions = spssOutlookT1.submissions;
                 Zip spssZipT1 = new Zip(TESTS_FOLDER + SPSS_T1_BRIGHTSPACE_ZIP, classlist);
                 zipSubmissions = spssZipT1.zipSubmissions;
                 spssResults = getSpssResults(submissions, zipSubmissions, attendance, classlist, type);
-                Excel.postSpssResults(spssResults, FIRST_TEST);
+                excel.postSpssResults(spssResults, FIRST_TEST);
 
                 type = EXCEL;
-                attendance = Excel.getAttendance(EXCEL_T1_ATT, RESULTS_FOLDER + RESULTS_WB, ATTENDANCE_SHT, ATTENDANCE_RANGE);
+                attendance = excel.getAttendance(EXCEL_T1_ATT);
                 Outlook excelOutlookT1 = new Outlook(TESTS_FOLDER + EXCEL_T1_EMAIL_PST);
                 submissions = excelOutlookT1.submissions;
                 Zip excelZipT1 = new Zip(TESTS_FOLDER + EXCEL_T1_BRIGHTSPACE_ZIP, classlist);
                 zipSubmissions = excelZipT1.zipSubmissions;
                 excelResults = getExcelResults(submissions, zipSubmissions, attendance, classlist, type);
-//                Excel.postResults(excelResults, FIRST_TEST);
+//                excel.postResults(excelResults, FIRST_TEST);
 
                 break;
             case SECOND_TEST:
                 type = SPSS;
-                attendance = Excel.getAttendance(SPSS_T2_ATT, RESULTS_FOLDER + RESULTS_WB, ATTENDANCE_SHT, ATTENDANCE_RANGE);
-                Outlook spssOutlookT2 = new Outlook(TESTS_FOLDER + SPSS_T2_EMAIL_PST);
-                submissions = spssOutlookT2.submissions;
-                Zip spssZipT2 = new Zip(TESTS_FOLDER + SPSS_T2_BRIGHTSPACE_ZIP, classlist);
-                zipSubmissions = spssZipT2.zipSubmissions;
-                spssResults = getSpssResults(submissions, zipSubmissions, attendance, classlist, type);
-                Excel.postSpssResults(spssResults, SECOND_TEST);
+//                attendance = excel.getAttendance(SPSS_T2_ATT);
+//                Outlook spssOutlookT2 = new Outlook(TESTS_FOLDER + SPSS_T2_EMAIL_PST);
+//                submissions = spssOutlookT2.submissions;
+//                Zip spssZipT2 = new Zip(TESTS_FOLDER + SPSS_T2_BRIGHTSPACE_ZIP, classlist);
+//                zipSubmissions = spssZipT2.zipSubmissions;
+//                spssResults = getSpssResults(submissions, zipSubmissions, attendance, classlist, type);
+//                excel.postSpssResults(spssResults, SECOND_TEST);
 
 //                type = EXCEL;
-//                attendance = Excel.getAttendance(EXCEL_T2_ATT, RESULTS_FOLDER + RESULTS_WB, ATTENDANCE_SHT, ATTENDANCE_RANGE);
+//                attendance = excel.getAttendance(EXCEL_T2_ATT);
 //                Outlook excelOutlookT2 = new Outlook(TESTS_FOLDER + EXCEL_T2_EMAIL_PST);
 //                submissions = excelOutlookT2.submissions;
 //                Zip excelZipT2 = new Zip(TESTS_FOLDER + EXCEL_T2_BRIGHTSPACE_ZIP, classlist);
 //                zipSubmissions = excelZipT2.zipSubmissions;
 //                excelResults = getExcelResults(submissions, zipSubmissions, attendance, classlist, type);
 //                printResults(excelResults);
-//                Excel.postResults(excelResults, SECOND_TEST);
+//                excel.postResults(excelResults, SECOND_TEST);
 
                 break;
         }
