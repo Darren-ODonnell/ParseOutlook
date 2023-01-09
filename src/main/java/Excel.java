@@ -9,6 +9,7 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.*;
 import static Models.Util.*;
+import static org.apache.poi.ss.usermodel.CellType.ERROR;
 
 import Excel.*;
 
@@ -21,14 +22,6 @@ public class Excel  {
 
     public Excel() {
     }
-
-//    public static void main(String[]args) {
-//
-//        setBasePath();
-//
-//        HashMap<String, ClasslistRow> classlist = getClasslist(TESTS_FOLDER + CLASSLIST_WB, CLASSLIST_SHT, CLASSLIST_RANGE);
-//        HashMap<String,Attendance> attendance = getAttendance(EXCEL_T2_ATT-1, RESULTS_FOLDER + RESULTS_WB, ATTENDANCE_SHT, ATTENDANCE_RANGE);
-//    }
 
     public HashMap<String, Attendance> getAttendance(int attendanceCell) {
         HashMap<String, Attendance> attendance = new HashMap<>();
@@ -49,7 +42,7 @@ public class Excel  {
                     String studentName = getStringValue( currentRow, eval, STUDENT_NAME_ATTENDANCE);
                     int test_attendance = getIntValue( currentRow, eval, attendanceCell);
 
-                    System.out.println("Row: "+ row + " - " + studentNo + " - " + studentName + " - " + test_attendance);
+//                    System.out.println("Row: "+ row + " - " + studentNo + " - " + studentName + " - " + test_attendance);
 
                     Attendance attend = Attendance.builder()
                             .studentNo(studentNo.toLowerCase())
@@ -187,36 +180,40 @@ public class Excel  {
         HashMap<String, Infoview> classlistBySno = new HashMap<>();
 
         try {
-
             XSSFSheet sheet = wb.getSheet( INFOVIEW_SHT );
             FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
-
             int startRow = getStartRow(sheet, INFOVIEW_RANGE);
             int endRow = getEndRow(sheet, INFOVIEW_RANGE);
 
             for(int vRow = startRow; vRow < endRow-1; vRow++) {
+                if(sheet.getRow(vRow) != null) {
+                    CellValue cellContent = eval.evaluate(sheet.getRow(vRow).getCell(INFOVIEW_STUDENT_NO) );
+                    if (cellContent !=null && cellContent.getCellType() != ERROR) {
+                        if (cellContent.getStringValue().length() > 0) {
 
-                Row r = sheet.getRow(vRow);
-//                Cell cc0 = r.getCell(0);
-//                Cell cc1 = r.getCell(1);
-//                Cell cc2 = r.getCell(2);
-//                Cell cc3 = r.getCell(INFOVIEW_STUDENT_NO);
-//                Cell cc4 = r.getCell(4);
-//                Cell cc5 = r.getCell(5);
-
-                if((sheet.getRow(vRow) != null) &&
-                        sheet.getRow(vRow).getCell(INFOVIEW_STUDENT_NO).getStringCellValue().length() > 0) {
-
-                    Infoview info = getInfoviewRow(wb, sheet.getRow(vRow));
-                    String name = info.getFullnameMax().toLowerCase();
-                    classlistByName.put( name  , info );
+                            Infoview info = getInfoviewRow(wb, sheet.getRow(vRow));
+                            String name = info.getFullnameMax().toLowerCase();
+                            classlistByName.put(name, info);
+                        } else {
+                            System.out.println(vRow + " - Invalid Cell contents found: " + cellContent.getStringValue());
+                            continue;
+                        }
+                    } else {
+                        System.out.println(vRow + " - Cell Error - Sno not recognised ");
+                        continue;
+                    }
+                } else {
+                    System.out.println(vRow + " - Row is null: ");
+                    continue;
                 }
+//                System.out.println(vRow);
             }
-            classlistByName.entrySet().forEach ( key -> System.out.println(key + " -> " + classlistByName.get(key)) );
+//            classlistByName.entrySet().forEach ( key -> System.out.println(key + " -> " + classlistByName.get(key)) );
 
         } catch(Exception e) {
             e.printStackTrace();
         }
+
         return classlistByName;
     }
 
@@ -299,42 +296,24 @@ public class Excel  {
     }
 
     private int getEndRow(XSSFSheet sheet, String rangeName) {
+
         XSSFName namedRange = wb.getName( rangeName );
         String formula =  namedRange.getRefersToFormula();
         String[] parts1 = formula.split("!",2);
         CellRangeAddress cra = createCorrectCellRangeAddress(parts1[1]);
-        return cra.getLastRow();
 
-//        XSSFName namedRange = wb.getName( rangeName );
-//        String formula =  namedRange.getRefersToFormula();
-//        RangeRef rr = new RangeRef(sheet, formula);
-//
-//        Cell end = rr.getEnd();
-//        int endRow =  end.getRowIndex();
-//
-//        return rr.getEnd().getRowIndex();
+        return cra.getLastRow();
     }
 
     private int getStartRow(XSSFSheet sheet, String rangeName) {
 
-
         XSSFName namedRange = wb.getName( rangeName );
         String formula =  namedRange.getRefersToFormula();
         String[] parts1 = formula.split("!",2);
         CellRangeAddress cra = createCorrectCellRangeAddress(parts1[1]);
+
         return cra.getFirstRow();
-
-//        String range = parts1[1];
-//        String[] parts2 = range.split(":");
-//        String start = parts2[1];
-//        XSSFName namedRange = wb.getName( rangeName );
-//        String formula =  namedRange.getRefersToFormula();
-//        RangeRef rr = new RangeRef(sheet, formula);
-
-//        return rr.getStart().getRowIndex();
-
     }
-
 
     public void postExcelResults(HashMap<String, ExcelResult> results, int test) {
         XSSFWorkbook wb = null;
@@ -407,11 +386,10 @@ public class Excel  {
         final String[] split = addressString.split(":");
         final CellReference cr1 = new CellReference(split[0]);
         final CellReference cr2 = new CellReference(split[1]);
-        int r1 = cr1.getRow() > cr2.getRow() ? cr2.getRow()-1 : cr1.getRow()-1;
-        int r2 = cr1.getRow() > cr2.getRow() ? cr1.getRow()-1 : cr2.getRow()-1;
-        int c1 = cr1.getCol() > cr2.getCol() ? cr2.getCol()-1 : cr1.getCol()-1;
-        int c2 = cr1.getCol() > cr2.getCol() ? cr1.getCol()-1 : cr2.getCol()-1;
+        int r1 = cr1.getRow() > cr2.getRow() ? cr2.getRow() : cr1.getRow();
+        int r2 = cr1.getRow() > cr2.getRow() ? cr1.getRow() : cr2.getRow();
+        int c1 = cr1.getCol() > cr2.getCol() ? cr2.getCol() : cr1.getCol();
+        int c2 = cr1.getCol() > cr2.getCol() ? cr1.getCol() : cr2.getCol();
         return new CellRangeAddress(r1, r2, c1, c2);
     }
-
 }

@@ -1,8 +1,7 @@
 import Models.*;
 import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
-
-
+import Excel.*;
 import java.util.*;
 
 import static Models.Util.*;
@@ -28,8 +27,9 @@ public class Main {
 
         setBasePath();
 
+        System.out.println("Read in from Infoview");
         classlist = excel.getInfoviewList();
-
+        System.out.println("Read in from Infoview Complete - Records found: " + classlist.size());
         switch(test) {
             case FIRST_TEST :
                 type = SPSS;
@@ -53,7 +53,10 @@ public class Main {
                 break;
             case SECOND_TEST:
                 type = SPSS;
-//                attendance = excel.getAttendance(SPSS_T2_ATT);
+                System.out.println("Read Attendance");
+                attendance = excel.getAttendance(SPSS_T2_ATT);
+                System.out.println("Attendance Rad - Present: " + attendance.size());
+
 //                Outlook spssOutlookT2 = new Outlook(TESTS_FOLDER + SPSS_T2_EMAIL_PST);
 //                submissions = spssOutlookT2.submissions;
 //                Zip spssZipT2 = new Zip(TESTS_FOLDER + SPSS_T2_BRIGHTSPACE_ZIP, classlist);
