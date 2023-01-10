@@ -18,7 +18,6 @@ public class Main {
         Excel excel = new Excel();
         HashMap<String, List<EmailSubmission>> submissions;
         HashMap<String, ZipSubmission> zipSubmissions;
-        ExcelWorkbook instance = ExcelWorkbook.getInstance();
 
         int test = 2;
 
@@ -33,7 +32,7 @@ public class Main {
                 submissions = spssOutlookT1.submissions;
                 Zip spssZipT1 = new Zip(TESTS_FOLDER + SPSS_T1_BRIGHTSPACE_ZIP, classlist);
                 zipSubmissions = spssZipT1.zipSubmissions;
-                spssResults = getSpssResults(submissions, zipSubmissions, attendance, classlist, type);
+                spssResults = getSpssResults(submissions, zipSubmissions, attendance, classlist);
                 excel.postSpssResults(spssResults, FIRST_TEST);
 
                 type = EXCEL;
@@ -42,8 +41,8 @@ public class Main {
                 submissions = excelOutlookT1.submissions;
                 Zip excelZipT1 = new Zip(TESTS_FOLDER + EXCEL_T1_BRIGHTSPACE_ZIP, classlist);
                 zipSubmissions = excelZipT1.zipSubmissions;
-                excelResults = getExcelResults(submissions, zipSubmissions, attendance, classlist, type);
-//                excel.postResults(excelResults, FIRST_TEST);
+                excelResults = getExcelResults(submissions, zipSubmissions, attendance, classlist);
+                excel.postExcelResults(excelResults, FIRST_TEST);
 
                 break;
             case SECOND_TEST:
@@ -51,18 +50,15 @@ public class Main {
                 attendance = excel.getAttendance(SPSS_T2_ATT);
                 Outlook spssOutlookT2 = new Outlook(TESTS_FOLDER + SPSS_T2_EMAIL_PST);
                 Zip spssZipT2 = new Zip(TESTS_FOLDER + SPSS_T2_BRIGHTSPACE_ZIP, classlist);
-                spssResults = getSpssResults(spssOutlookT2.submissions, spssZipT2.zipSubmissions, attendance, classlist, type);
+                spssResults = getSpssResults(spssOutlookT2.submissions, spssZipT2.zipSubmissions, attendance, classlist);
                 excel.postSpssResults(spssResults, SECOND_TEST);
 
-//                type = EXCEL;
-//                attendance = excel.getAttendance(EXCEL_T2_ATT);
-//                Outlook excelOutlookT2 = new Outlook(TESTS_FOLDER + EXCEL_T2_EMAIL_PST);
-//                submissions = excelOutlookT2.submissions;
-//                Zip excelZipT2 = new Zip(TESTS_FOLDER + EXCEL_T2_BRIGHTSPACE_ZIP, classlist);
-//                zipSubmissions = excelZipT2.zipSubmissions;
-//                excelResults = getExcelResults(submissions, zipSubmissions, attendance, classlist, type);
-//                printResults(excelResults);
-//                excel.postResults(excelResults, SECOND_TEST);
+                type = EXCEL;
+                attendance = excel.getAttendance(EXCEL_T2_ATT);
+                Outlook excelOutlookT2 = new Outlook(TESTS_FOLDER + EXCEL_T2_EMAIL_PST);
+                Zip excelZipT2 = new Zip(TESTS_FOLDER + EXCEL_T2_BRIGHTSPACE_ZIP, classlist);
+                excelResults = getExcelResults(excelOutlookT2.submissions, excelZipT2.zipSubmissions, attendance, classlist);
+                excel.postExcelResults(excelResults, SECOND_TEST);
 
                 break;
         }
@@ -84,15 +80,15 @@ public class Main {
     private static  HashMap<String, ExcelResult> getExcelResults(HashMap<String, List<EmailSubmission>> submissions,
                                                HashMap<String, ZipSubmission> zipSubmissions,
                                                HashMap<String, Attendance> attendance,
-                                               HashMap<String, Infoview> classlist, int type) {
+                                               HashMap<String, Infoview> classlist) {
 
         HashMap<String, ExcelResult> results = new HashMap<>();
 
         for (String name : classlist.keySet()) {
             String studentNo = classlist.get(name).getStudentNo();
-            ExcelResult excelResult = null;
-            int attend = 0;
-            int bsSubmissions = 0;
+            ExcelResult excelResult;
+            int attend;
+            int bsSubmissions;
             int filesSubmitted = 0;
             int xlsxSno = 0;
             int xlsxSubmitted = 0;
@@ -107,7 +103,6 @@ public class Main {
                 xlsxSno = sub.isSnoXlsx() ? 1 : 0;
                 xlsxSubmitted = sub.isXlsxSubmitted() ? 1 : 0;
                 emailSubmission = (sub.getQtyEmails() > 0) ? 1 : 0;
-
             }
 
             if (zipSubmissions.containsKey(studentNo.toLowerCase()))
@@ -141,25 +136,17 @@ public class Main {
         return results;
     }
 
-    private static void printResults(HashMap<String, ExcelResult> results) {
-        List<String> sortedkeys = new ArrayList<>(results.keySet());
-        Collections.sort(sortedkeys);
-        for(String key : sortedkeys) {
-            System.out.println(key + " -> " +results.get(key).toString());
-        }
-    }
-
     private static HashMap<String, SpssResult> getSpssResults(HashMap<String, List<EmailSubmission>> submissions,
                                               HashMap<String, ZipSubmission> zipSubmissions,
                                               HashMap<String, Attendance> attendance,
-                                              HashMap<String, Infoview> classlist, int type) {
+                                              HashMap<String, Infoview> classlist) {
         log.info(new MyString("Info: Building SPSS REsults for Excel upload :").toString());
         HashMap<String, SpssResult> results = new HashMap<>();
         for (Map.Entry<String, Infoview>  student : classlist.entrySet()) {
             int bsSub = 0;
             int emSub = 0;
-            EmailSubmission sub = null;
-            ZipSubmission zSub = null;
+            EmailSubmission sub ;
+            ZipSubmission zSub ;
             boolean savSubE = false;
             boolean spvSubE = false;
             boolean savSnoE = false;
