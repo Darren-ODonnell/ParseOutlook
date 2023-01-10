@@ -34,7 +34,7 @@ public class Util {
 
     public static final String ATTENDANCE_TESTS_SHEET = "Attendance Tests";
     public static final int ATTENDANCE_TESTS_START_ROW = 6;
-    public static final int ATTENDANCE_TESTS_STUDENT_NO_COL = 4;
+    public static final int ATTENDANCE_TESTS_STUDENT_NO_COL = 3;
 
     public static final String ATTENDANCE_TESTS_RANGE =  "attendancetests";
 

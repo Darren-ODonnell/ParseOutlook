@@ -1,5 +1,7 @@
 import Models.*;
 import lombok.CustomLog;
+
+import java.io.IOException;
 import java.util.*;
 import static Models.Util.*;
 
@@ -12,19 +14,15 @@ public class Main {
 
     public static void main(String[] args) {
         // util.java has all the filename definitions
-
         setBasePath();
         Excel excel = new Excel();
-
         HashMap<String, List<EmailSubmission>> submissions;
         HashMap<String, ZipSubmission> zipSubmissions;
-
         ExcelWorkbook instance = ExcelWorkbook.getInstance();
 
         int test = 2;
 
         setBasePath();
-
         classlist = excel.getInfoviewList();
 
         switch(test) {
@@ -54,7 +52,7 @@ public class Main {
                 Outlook spssOutlookT2 = new Outlook(TESTS_FOLDER + SPSS_T2_EMAIL_PST);
                 Zip spssZipT2 = new Zip(TESTS_FOLDER + SPSS_T2_BRIGHTSPACE_ZIP, classlist);
                 spssResults = getSpssResults(spssOutlookT2.submissions, spssZipT2.zipSubmissions, attendance, classlist, type);
-//                excel.postSpssResults(spssResults, SECOND_TEST);
+                excel.postSpssResults(spssResults, SECOND_TEST);
 
 //                type = EXCEL;
 //                attendance = excel.getAttendance(EXCEL_T2_ATT);
@@ -68,36 +66,20 @@ public class Main {
 
                 break;
         }
+
+        closeWorkbook();
+
         System.exit(0);
     }
 
-
-
-//    private static void postResults(int type, int test) {
-//
-//        switch(test) {
-//            case FIRST_TEST:
-//                switch(type) {
-//                    case SPSS:
-//
-//                        break;
-//                    case EXCEL:
-//                        break;
-//
-//                }
-//            case SECOND_TEST:
-//                switch(type) {
-//                    case SPSS:
-//                        System.out.println(spssResults);
-//                        break;
-//                    case EXCEL:
-//                        break;
-//
-//                }
-//
-//        }
-//
-//    }
+    private static void closeWorkbook() {
+        try {
+            Excel.wb.close();
+        } catch (IOException e) {
+            log.severe("Error: Closing Workbook");
+            System.exit(1);
+        }
+    }
 
     private static  HashMap<String, ExcelResult> getExcelResults(HashMap<String, List<EmailSubmission>> submissions,
                                                HashMap<String, ZipSubmission> zipSubmissions,
@@ -171,7 +153,7 @@ public class Main {
                                               HashMap<String, ZipSubmission> zipSubmissions,
                                               HashMap<String, Attendance> attendance,
                                               HashMap<String, Infoview> classlist, int type) {
-        log.info("Info: Building SPSS REsults for Excel upload : =============== ");
+        log.info(new MyString("Info: Building SPSS REsults for Excel upload :").toString());
         HashMap<String, SpssResult> results = new HashMap<>();
         for (Map.Entry<String, Infoview>  student : classlist.entrySet()) {
             int bsSub = 0;
@@ -186,28 +168,27 @@ public class Main {
             boolean spvSubB = false;
             boolean savSnoB = false;
             boolean spvSnoB = false;
-            int bsFiles = 0;
-            int emFiles = 0;
+
+            int filesE = 0;
+            int filesB = 0;
+
+
             String studentNo = student.getValue().getStudentNo();
 
             // check brightspace submission
-            if(! submissions.containsKey(studentNo) ) continue; // skip over where no submissions exist
-            else
-                if(submissions.get(studentNo).size() == 0) {
-                    emFiles = 0;
-                    emSub = 0;
-
-                } else {
+            if(submissions.containsKey(studentNo) ) { // skip over where no submissions exist
+                if (submissions.get(studentNo).size() != 0) {
                     sub = submissions.get(studentNo).get(0);
-                    emSub = (submissions.get(studentNo).get(0) .getQtyFiles()>0) ? 1 : 0;
+                    emSub = (submissions.get(studentNo).get(0).getQtyFiles() > 0) ? 1 : 0;
 
                     savSubE = sub.isSavSubmitted();
                     savSnoE = sub.isSnoSav();
                     spvSubE = sub.isSpvSubmitted();
                     spvSnoE = sub.isSnoSpv();
-                    emFiles = sub.getQtyFiles();
+                    filesE = sub.getQtyFiles();
 
                 }
+            }
             // check emailSubmission
             if(zipSubmissions.containsKey(studentNo))     {
                 bsSub = (zipSubmissions.get(studentNo) != null) ? 1 : 0;
@@ -216,8 +197,7 @@ public class Main {
                 savSnoB = zSub.isSnoSav();
                 spvSubB = zSub.isSpvSubmitted();
                 spvSnoB = zSub.isSnoSpv();
-                bsFiles = zSub.getQtyFiles();
-
+                filesB  = zSub.getQtyFiles();
             }
 
             SpssResult spssResult = SpssResult.builder()
@@ -229,27 +209,15 @@ public class Main {
                     .sno(savSnoE && spvSnoB ? 1 : 0)
                     .savSno( (savSnoE || savSnoB) ? 1 : 0)
                     .spvSno( (spvSnoE || spvSnoB) ? 1 : 0)
-                    .IncorrectFilesSubmitted((emFiles == 2) || (bsFiles == 2) ? 1 : 0)
+                    .IncorrectFilesSubmitted(((filesE == 2) || (filesB == 2)) ? 1 : 0)
                     .build();
 
             results.put(String.valueOf(studentNo), spssResult);
 
         }
-        log.info("Info: SPSS Results Build complete : ========================== Results: " + results.size());
+        log.info(new MyString("Info: SPSS Results Build complete :","Results: " , results.size()).toString());
 
         return results;
-    }
-
-
-
-    protected String buildStringWithLength(String string, int length, char charToFill) {
-        char[] array = new char[length];
-        int pos = 0;
-        while (pos < length) {
-            array[pos] = charToFill;
-            pos++;
-        }
-        return new String(array);
     }
 
 }

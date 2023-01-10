@@ -36,14 +36,13 @@ public class Outlook {
     }
 
     public Outlook(String filename) {
-            log.info("Info: Reading Outlook file: ================================== : " + filename);
+            log.info(new MyString("Info: Reading Outlook file: " , filename).toString());
         try {
             PSTFile pstFile = new PSTFile(filename);
-//            System.out.println(pstFile.getMessageStore().getDisplayName());
             processFolder(pstFile.getRootFolder());
-            log.info("Info: Submission read from Outlook files ===================== Count : " + submissions.size());
+            log.info(new MyString("Info: Submission read from Outlook files ","Count: " , submissions.size()).toString());
         } catch (Exception err) {
-            log.severe("Error: Outlook file cannot be opened: " + filename);
+            log.severe(new MyString("Error: Outlook file cannot be opened: " , filename).toString());
             System.exit(1);
         }
     }
@@ -78,9 +77,6 @@ public class Outlook {
             }
         }
 
-//        submissions.forEach((key,value) -> {
-//            System.out.println(key + "-> " + value.toString());
-//        });
 
     }
 
@@ -94,7 +90,6 @@ public class Outlook {
             subs.get(0).setSnoSpv( subs.get(0).isSnoSpv() || sub.isSnoSpv());
             subs.get(0).setSnoXlsx( subs.get(0).isSnoXlsx() || sub.isSnoXlsx());
         }
-
         return subs;
     }
 
@@ -191,7 +186,7 @@ public class Outlook {
                 String file = email.getAttachment(i).getLongFilename();
                 files.add(file.toLowerCase());
             } catch (PSTException | IOException e) {
-                log.severe("Error: Cannot read from Outlook file" );
+                log.severe(new MyString("Error: Cannot read from Outlook file" ).toString());
                 throw new RuntimeException(e);
             }
         }

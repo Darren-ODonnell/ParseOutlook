@@ -20,13 +20,10 @@ public class Zip {
 
     HashMap<String, ZipSubmission> zipSubmissions;
 
-
-
-
     public Zip(String filename,  HashMap<String, Infoview> classlist) {
-        log.info("Info: Reading in Brightspace Zip file: ======================= : " + filename);
+        log.info(new MyString("Info: Reading in Brightspace Zip file: " , filename).toString());
         zipSubmissions = getZipSubmissions(classlist, filename);
-        log.info("Info: Brightspace Zip file Complete: ========================= Count: " + zipSubmissions.size());
+        log.info(new MyString("Info: Brightspace Zip file Complete: ","Count: " , zipSubmissions.size()).toString());
 
     }
 
@@ -34,7 +31,6 @@ public class Zip {
 
         List<String> fileContent = readZip(filename);
         HashMap<String, ZipSubmission> zipSubmissions = new HashMap<>();
-
 
         for(String student : fileContent) {
 
@@ -132,7 +128,7 @@ public class Zip {
             zipFile.close();
         }
         catch (IOException ioException) {
-            log.severe("Error: Opening zip file: " + filename + "\n" + ioException);
+            log.severe(new MyString("Error: Opening zip file: " , filename + "\n" + ioException).toString());
             System.exit(1);
         }
         return fileContent;
