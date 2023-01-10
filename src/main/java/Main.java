@@ -1,12 +1,9 @@
 import Models.*;
-import lombok.extern.java.Log;
-import lombok.extern.slf4j.Slf4j;
-import Excel.*;
+import lombok.CustomLog;
 import java.util.*;
-
 import static Models.Util.*;
 
-@Slf4j @Log
+@CustomLog
 public class Main {
     public static HashMap<String, Infoview> classlist;
     public static HashMap<String, Attendance> attendance;
@@ -15,6 +12,7 @@ public class Main {
 
     public static void main(String[] args) {
         // util.java has all the filename definitions
+
         setBasePath();
         Excel excel = new Excel();
 
@@ -27,9 +25,8 @@ public class Main {
 
         setBasePath();
 
-        System.out.println("Read in from Infoview");
         classlist = excel.getInfoviewList();
-        System.out.println("Read in from Infoview Complete - Records found: " + classlist.size());
+
         switch(test) {
             case FIRST_TEST :
                 type = SPSS;
@@ -53,15 +50,10 @@ public class Main {
                 break;
             case SECOND_TEST:
                 type = SPSS;
-                System.out.println("Read Attendance");
                 attendance = excel.getAttendance(SPSS_T2_ATT);
-                System.out.println("Attendance Read - Present: " + attendance.size());
-
-//                Outlook spssOutlookT2 = new Outlook(TESTS_FOLDER + SPSS_T2_EMAIL_PST);
-//                submissions = spssOutlookT2.submissions;
-//                Zip spssZipT2 = new Zip(TESTS_FOLDER + SPSS_T2_BRIGHTSPACE_ZIP, classlist);
-//                zipSubmissions = spssZipT2.zipSubmissions;
-//                spssResults = getSpssResults(submissions, zipSubmissions, attendance, classlist, type);
+                Outlook spssOutlookT2 = new Outlook(TESTS_FOLDER + SPSS_T2_EMAIL_PST);
+                Zip spssZipT2 = new Zip(TESTS_FOLDER + SPSS_T2_BRIGHTSPACE_ZIP, classlist);
+                spssResults = getSpssResults(spssOutlookT2.submissions, spssZipT2.zipSubmissions, attendance, classlist, type);
 //                excel.postSpssResults(spssResults, SECOND_TEST);
 
 //                type = EXCEL;
@@ -76,8 +68,10 @@ public class Main {
 
                 break;
         }
-
+        System.exit(0);
     }
+
+
 
 //    private static void postResults(int type, int test) {
 //
@@ -166,19 +160,18 @@ public class Main {
     }
 
     private static void printResults(HashMap<String, ExcelResult> results) {
-
         List<String> sortedkeys = new ArrayList<>(results.keySet());
         Collections.sort(sortedkeys);
-
         for(String key : sortedkeys) {
             System.out.println(key + " -> " +results.get(key).toString());
         }
     }
 
     private static HashMap<String, SpssResult> getSpssResults(HashMap<String, List<EmailSubmission>> submissions,
-                                                              HashMap<String, ZipSubmission> zipSubmissions,
-                                                              HashMap<String, Attendance> attendance,
-                                                              HashMap<String, Infoview> classlist, int type) {
+                                              HashMap<String, ZipSubmission> zipSubmissions,
+                                              HashMap<String, Attendance> attendance,
+                                              HashMap<String, Infoview> classlist, int type) {
+        log.info("Info: Building SPSS REsults for Excel upload : =============== ");
         HashMap<String, SpssResult> results = new HashMap<>();
         for (Map.Entry<String, Infoview>  student : classlist.entrySet()) {
             int bsSub = 0;
@@ -227,7 +220,6 @@ public class Main {
 
             }
 
-            System.out.println(studentNo);
             SpssResult spssResult = SpssResult.builder()
                     .attendance(attendance.get(studentNo).getAttendance())
                     .brightspaceSubmission(bsSub)
@@ -243,9 +235,21 @@ public class Main {
             results.put(String.valueOf(studentNo), spssResult);
 
         }
+        log.info("Info: SPSS Results Build complete : ========================== Results: " + results.size());
+
         return results;
     }
 
 
+
+    protected String buildStringWithLength(String string, int length, char charToFill) {
+        char[] array = new char[length];
+        int pos = 0;
+        while (pos < length) {
+            array[pos] = charToFill;
+            pos++;
+        }
+        return new String(array);
+    }
 
 }

@@ -12,10 +12,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import Models.*;
+import lombok.CustomLog;
 
 import static Models.Util.SIZE_STUDENT_NO;
 import static Models.Util.type;
 
+@CustomLog
 public class Outlook {
 
     HashMap<String, List<EmailSubmission>> submissions = new HashMap<>();
@@ -34,13 +36,15 @@ public class Outlook {
     }
 
     public Outlook(String filename) {
-
+            log.info("Info: Reading Outlook file: ================================== : " + filename);
         try {
             PSTFile pstFile = new PSTFile(filename);
-            System.out.println(pstFile.getMessageStore().getDisplayName());
+//            System.out.println(pstFile.getMessageStore().getDisplayName());
             processFolder(pstFile.getRootFolder());
+            log.info("Info: Submission read from Outlook files ===================== Count : " + submissions.size());
         } catch (Exception err) {
-            err.printStackTrace();
+            log.severe("Error: Outlook file cannot be opened: " + filename);
+            System.exit(1);
         }
     }
 
@@ -74,9 +78,9 @@ public class Outlook {
             }
         }
 
-        submissions.forEach((key,value) -> {
-            System.out.println(key + "-> " + value.toString());
-        });
+//        submissions.forEach((key,value) -> {
+//            System.out.println(key + "-> " + value.toString());
+//        });
 
     }
 
@@ -187,6 +191,7 @@ public class Outlook {
                 String file = email.getAttachment(i).getLongFilename();
                 files.add(file.toLowerCase());
             } catch (PSTException | IOException e) {
+                log.severe("Error: Cannot read from Outlook file" );
                 throw new RuntimeException(e);
             }
         }

@@ -1,4 +1,5 @@
 import Models.*;
+import lombok.CustomLog;
 import org.apache.logging.log4j.core.tools.picocli.CommandLine;
 import org.apache.poi.ss.usermodel.*;
 
@@ -13,36 +14,35 @@ import static org.apache.poi.ss.usermodel.CellType.ERROR;
 
 import Excel.*;
 
+@CustomLog
 public class Excel  {
-
+    int padding = 50;
     ExcelWorkbook instance = ExcelWorkbook.getInstance();
     public static XSSFWorkbook wb = ExcelWorkbook.getInstance().wb;
-
-
+    public static FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
 
     public Excel() {
     }
 
     public HashMap<String, Attendance> getAttendance(int attendanceCell) {
+        log.info(new MyString("Start loading Attendance: ").toString());
+
         HashMap<String, Attendance> attendance = new HashMap<>();
 
         try {
 
             XSSFSheet sheet = wb.getSheet( ATTENDANCE_SHT );
-            FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
 
             int startRow = getStartRow(sheet, ATTENDANCE_RANGE);
             int endRow = getEndRow(sheet, ATTENDANCE_RANGE);
 
             for ( int row = startRow-1; row < endRow; row++ ) {
                 Row currentRow = sheet.getRow(row);
-                String studentNo = getStringValue( currentRow, eval, STUDENT_NO_ATTENDANCE);
+                String studentNo = getStringValue( currentRow, STUDENT_NO_ATTENDANCE);
 
                 if( studentNo.length() > 0 ) {
-                    String studentName = getStringValue( currentRow, eval, STUDENT_NAME_ATTENDANCE);
-                    int test_attendance = getIntValue( currentRow, eval, attendanceCell);
-
-//                    System.out.println("Row: "+ row + " - " + studentNo + " - " + studentName + " - " + test_attendance);
+                    String studentName = getStringValue( currentRow, STUDENT_NAME_ATTENDANCE);
+                    int test_attendance = getIntValue( currentRow, attendanceCell);
 
                     Attendance attend = Attendance.builder()
                             .studentNo(studentNo.toLowerCase())
@@ -52,16 +52,19 @@ public class Excel  {
 
                     attendance.put(studentNo.toLowerCase(), attend);
                 } else { // skip over cells with no student number
-                    System.out.println("Null Cell found at: " + row);
+                    log.warning("Null Cell found at: " + row);
                 }
             }
         } catch(Exception e) {
-            e.printStackTrace();
+            log.severe(new MyString("Error: opening worksheet : ", ATTENDANCE_SHT).toString());
+            System.exit(1);
         }
+        log.info(new MyString("Attendance : ", "Size : ", attendance.size()).toString());
+
         return attendance;
     }
 
-    public  String getCellValue(Cell cell, FormulaEvaluator eval) {
+    public  String getCellValue(Cell cell) {
 
         CellValue abc = eval.evaluate(cell);
         CellType cType = cell.getCellType();
@@ -77,7 +80,7 @@ public class Excel  {
         return "";
     }
 
-    private  String getStringValue(Row row, FormulaEvaluator eval, int column) {
+    private  String getStringValue(Row row, int column) {
         Cell cell = row.getCell( column );
         CellValue res = eval.evaluate( cell );
 
@@ -94,7 +97,7 @@ public class Excel  {
         return "";
     }
 
-    private static int getIntValue(Row row, FormulaEvaluator eval, int column) {
+    private static int getIntValue(Row row, int column) {
         Cell cell = row.getCell( column );
         CellValue res = eval.evaluate(cell);
 
@@ -110,7 +113,7 @@ public class Excel  {
         return 999;
     }
 
-    private static String checkCellValue(Row row, FormulaEvaluator eval, int column) {
+    private static String checkCellValue(Row row, int column) {
 
         CellType cellType = row.getCell(column).getCellType();
 
@@ -141,7 +144,8 @@ public class Excel  {
             sheet.forEach( row -> classlist.put(getStudentNo( row).toLowerCase(), getClasslistRow( row )) );
 
         } catch(Exception e) {
-            e.printStackTrace();
+            log.severe("Error opening workbook : " + classlistWb);
+            System.exit(1);
         }
         return classlist;
     }
@@ -175,13 +179,13 @@ public class Excel  {
     }
 
     public HashMap<String, Infoview> getInfoviewList() {
-
+        log.info(new MyString("Start loading Infoview : ").toString());
         HashMap<String, Infoview> classlistByName = new HashMap<>();
         HashMap<String, Infoview> classlistBySno = new HashMap<>();
 
         try {
             XSSFSheet sheet = wb.getSheet( INFOVIEW_SHT );
-            FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
+
             int startRow = getStartRow(sheet, INFOVIEW_RANGE);
             int endRow = getEndRow(sheet, INFOVIEW_RANGE);
 
@@ -195,30 +199,32 @@ public class Excel  {
                             String name = info.getFullnameMax().toLowerCase();
                             classlistByName.put(name, info);
                         } else {
-                            System.out.println(vRow + " - Invalid Cell contents found: " + cellContent.getStringValue());
+                            log.warning(vRow + " - Invalid Cell contents found: " + cellContent.getStringValue());
                             continue;
                         }
                     } else {
-                        System.out.println(vRow + " - Cell Error - Sno not recognised ");
+                        log.warning(vRow + " - Cell Error - Sno not recognised ");
                         continue;
                     }
                 } else {
-                    System.out.println(vRow + " - Row is null: ");
+                    log.warning(vRow + " - Row is null: ");
                     continue;
                 }
-//                System.out.println(vRow);
+
             }
-//            classlistByName.entrySet().forEach ( key -> System.out.println(key + " -> " + classlistByName.get(key)) );
+
 
         } catch(Exception e) {
-            e.printStackTrace();
+
+            log.severe(new MyString("Error: Cannot open worksheet: " , INFOVIEW_SHT).toString());
+            System.exit(1);
         }
+        log.info(new MyString("Start loading Infoview : ", "Size : ", classlistByName.size()).toString());
 
         return classlistByName;
     }
 
     public Infoview getInfoviewRow( XSSFWorkbook wb, Row row) {
-        FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
 
         Infoview listRow = Infoview.builder()
                 .address(       eval.evaluate(  row.getCell(INFOVIEW_ADDRESS)).getStringValue())
@@ -243,9 +249,11 @@ public class Excel  {
             fis = new FileInputStream(file);
             wb = new XSSFWorkbook(fis);
         } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
+            log.severe("Error: Workbook not found: " + RESULTS_FOLDER + RESULTS_WB);
+            System.exit(1);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.severe("Error: Workbook readin error: " + RESULTS_FOLDER + RESULTS_WB);
+            System.exit(1);
         }
         // creating Workbook instance that refers to .xlsx file
         return wb;
@@ -253,9 +261,9 @@ public class Excel  {
 
     public void postSpssResults(HashMap<String, SpssResult> results, int test) {
 
+        log.info("Info: Posting SPSS results to results Workbook: =====================");
         try {
             XSSFSheet sheet = wb.getSheet( ATTENDANCE_TESTS_SHEET );
-            FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
 
             int startRow = getStartRow(sheet, ATTENDANCE_TESTS_RANGE);
             int endRow = getEndRow(sheet, ATTENDANCE_TESTS_RANGE);
@@ -281,17 +289,24 @@ public class Excel  {
                     currentRow.getCell(savCol).setCellValue(result.getSavSubmitted());
                     currentRow.getCell(spvCol).setCellValue(result.getSpvSubmitted());
                     currentRow.getCell(bsSubCol).setCellValue(result.getBrightspaceSubmission());
+                } else {
+                    log.warning("Warn: StudentNo not found in results : " + studentNo);
                 }
                 break;
             }
         } catch(Exception e) {
-            e.printStackTrace();
+            log.severe("Error: Accessing worksheet: " + ATTENDANCE_TESTS_SHEET);
+            System.exit(1);
+
         }
 
-        if(wb != null)
-            writeExcelFile( wb );
-        else
-            System.out.println("wb is null");
+        if(wb != null) {
+            writeExcelFile(wb);
+            log.info("Info: Posting SPSS results to results Workbook: =====================");
+        } else {
+            log.severe("Error: Workbook wb is null");
+            System.exit(1);
+        }
 
     }
 
@@ -316,27 +331,14 @@ public class Excel  {
     }
 
     public void postExcelResults(HashMap<String, ExcelResult> results, int test) {
-        XSSFWorkbook wb = null;
+        log.info("Info: Posting Excel results to results Workbook: =====================");
         try {
-
-
-            File file = new File(RESULTS_FOLDER + RESULTS_WB); //creating a new file instance
-            FileInputStream fis = new FileInputStream(file);//obtaining bytes from the file
-            // creating Workbook instance that refers to .xlsx file
-            wb = new XSSFWorkbook(fis);
             XSSFSheet sheet = wb.getSheet( ATTENDANCE_TESTS_SHEET );
-            FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
 
-            XSSFName namedRange = wb.getName(ATTENDANCE_TESTS_RANGE);
-            String formula =  namedRange.getRefersToFormula();
-            RangeRef rr = new RangeRef(sheet, formula);
 
-            // for each row in worksheet - find data for that studnet and write to file.
+            int startRow = getStartRow(sheet, ATTENDANCE_TESTS_RANGE);
+            int endRow = getEndRow(sheet, ATTENDANCE_TESTS_RANGE);
 
-            // open files and sheet
-
-            int endRow = rr.getEnd().getRowIndex();
-            int startRow = rr.getStart().getRowIndex();
             int studentNoCol = ATTENDANCE_TESTS_STUDENT_NO_COL;
 
             int emSubCol = (test == 1) ? SPSS1_ATT_TEST_EM_SUB : SPSS2_ATT_TEST_EM_SUB;
@@ -360,13 +362,17 @@ public class Excel  {
                 break;
             }
         } catch(Exception e) {
-            e.printStackTrace();
+            log.severe("Error: Accessing worksheet: " + ATTENDANCE_TESTS_SHEET);
+            System.exit(1);
         }
 
-        if(wb != null)
-            writeExcelFile( wb );
-        else
-            System.out.println("wb is null");
+        if(wb != null) {
+            writeExcelFile(wb);
+            log.info("Info: Posting Excel results to results Workbook: =====================");
+        } else {
+            log.severe("Error: Workbook wb is null");
+            System.exit(1);
+        }
 
     }
 
@@ -376,9 +382,11 @@ public class Excel  {
             FileOutputStream outputStream = new FileOutputStream(RESULTS_FOLDER + RESULTS_WB);
             wb.write(outputStream);
         } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
+            log.severe("Error: File not found Accessing worksheet: " + RESULTS_FOLDER + RESULTS_WB);
+            System.exit(1);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.severe("Error: Writing to file: " + RESULTS_FOLDER + RESULTS_WB);
+            System.exit(1);
         }
     }
 

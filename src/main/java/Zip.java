@@ -1,5 +1,6 @@
 import Models.Infoview;
 import Models.ZipSubmission;
+import lombok.CustomLog;
 
 
 import java.io.File;
@@ -14,38 +15,19 @@ import java.util.zip.ZipEntry;
 
 import static Models.Util.*;
 
+@CustomLog
 public class Zip {
 
     HashMap<String, ZipSubmission> zipSubmissions;
 
-//    public static void main(String[] args) {
-//        setBasePath();
-//
-//        // get classlist
-//        HashMap<String, Infoview> classlist = classlist = excel.getInfoviewList();
-//
-//        new Zip(TESTS_FOLDER + SPSS_T2_BRIGHTSPACE_ZIP, classlist);
-//
-//    }
+
 
 
     public Zip(String filename,  HashMap<String, Infoview> classlist) {
-
-//        String spssT1A = "SPSS T1A.zip";   type = SPSS;
-//        String spssT1B = "SPSS T1B.zip";   type = SPSS;
-//        String spssT2A = "SPSS T2.zip";    type = SPSS;
-//        String spssT2B = "SPSS T2B.zip";   type = SPSS;
-//        String excelT1A = "Excel T1A.zip"; type = EXCEL;
-//        String excelT2A = "Excel T2A.zip"; type = EXCEL;
-//        String excelT1B = "Excel T1B.zip"; type = EXCEL;
-//        String excelT2B = "Excel T2B.zip"; type = EXCEL;
-
-
-//        classlist.forEach((key, value) ->  System.out.println(key + " -> " + value.toString()) );
-
+        log.info("Info: Reading in Brightspace Zip file: ======================= : " + filename);
         zipSubmissions = getZipSubmissions(classlist, filename);
+        log.info("Info: Brightspace Zip file Complete: ========================= Count: " + zipSubmissions.size());
 
-//        zipSubmissions.forEach((key, value) -> System.out.println(key + " -> " + value.toString()));
     }
 
     private static HashMap<String, ZipSubmission> getZipSubmissions(HashMap<String, Infoview> classlist, String filename) {
@@ -57,7 +39,6 @@ public class Zip {
         for(String student : fileContent) {
 
             String[] parts = student.split("[-/?]",5);
-
 
             String header = "";
             String name = "";
@@ -89,7 +70,7 @@ public class Zip {
                 files = zipSubmissions.get(studentNo.toLowerCase()).getFiles();
             }
             files.add(file.toLowerCase());
-            System.out.println(studentNo);
+
             ZipSubmission zipSubmission = ZipSubmission.builder()
                     .savSubmitted( extnExists("sav",files))
                     .spvSubmitted( extnExists("spv",files))
@@ -112,7 +93,6 @@ public class Zip {
             } else { // add
                 zipSubmissions.put(studentNo.toLowerCase(), zipSubmission);
             }
-            System.out.println(student + " - " + zipSubmissions.size());
         }
 
         return zipSubmissions;
@@ -149,11 +129,11 @@ public class Zip {
             ZipFile zipFile = new ZipFile(file);
             fileContent = zipFile.stream().map(ZipEntry::getName).collect(Collectors.toList());
 
-            fileContent.forEach(System.out::println);
             zipFile.close();
         }
         catch (IOException ioException) {
-            System.out.println("Error opening zip file: " + filename + "\n" + ioException);
+            log.severe("Error: Opening zip file: " + filename + "\n" + ioException);
+            System.exit(1);
         }
         return fileContent;
     }
