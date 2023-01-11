@@ -8,7 +8,6 @@ import java.util.HashMap;
 
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellReference;
-import org.apache.poi.xssf.usermodel.*;
 
 import static Models.Util.*;
 import static Models.Util.EXCEL2_ATT_TEST_BS_SUB;
@@ -17,7 +16,7 @@ import static org.apache.poi.ss.usermodel.CellType.*;
 
 @CustomLog
 public class Excel  {
-    public static XSSFWorkbook wb = ExcelWorkbook.getInstance().wb;
+    public static Workbook wb = ExcelWorkbook.getInstance().wb;
     public static FormulaEvaluator eval = wb.getCreationHelper().createFormulaEvaluator();
 
     public Excel() {
@@ -30,7 +29,7 @@ public class Excel  {
 
         try {
 
-            XSSFSheet sheet = wb.getSheet( ATTENDANCE_SHT );
+            Sheet sheet = wb.getSheet( ATTENDANCE_SHT );
 
             int startRow = getStartRow( ATTENDANCE_RANGE);
             int endRow = getEndRow( ATTENDANCE_RANGE);
@@ -101,7 +100,7 @@ public class Excel  {
         HashMap<String, Infoview> classlistByName = new HashMap<>();
 
         try {
-            XSSFSheet sheet = wb.getSheet( INFOVIEW_SHT );
+            Sheet sheet = wb.getSheet( INFOVIEW_SHT );
 
             int startRow = getStartRow( INFOVIEW_RANGE);
             int endRow = getEndRow( INFOVIEW_RANGE);
@@ -124,7 +123,7 @@ public class Excel  {
         return classlistByName;
     }
 
-    private static boolean rowValid(XSSFSheet sheet, int row) {
+    private static boolean rowValid(Sheet sheet, int row) {
         if(sheet.getRow(row) != null) {
             CellValue cellContent = eval.evaluate(sheet.getRow(row).getCell(INFOVIEW_STUDENT_NO) );
             if (cellContent != null) {
@@ -165,7 +164,7 @@ public class Excel  {
 
         log.info(new MyString("Info: Posting SPSS results to results Workbook: ").toString());
         try {
-            XSSFSheet sheet = wb.getSheet( ATTENDANCE_TESTS_SHEET );
+            Sheet sheet = wb.getSheet( ATTENDANCE_TESTS_SHEET );
 
             int startRow = getStartRow( ATTENDANCE_TESTS_RANGE);
             int endRow = getEndRow( ATTENDANCE_TESTS_RANGE);
@@ -213,7 +212,7 @@ public class Excel  {
 
     private int getEndRow(String rangeName) {
 
-        XSSFName namedRange = wb.getName( rangeName );
+        Name namedRange = wb.getName( rangeName );
         String formula =  namedRange.getRefersToFormula();
         String[] parts1 = formula.split("!",2);
         CellRangeAddress cra = getCellRangeAddress(parts1[1]);
@@ -223,7 +222,7 @@ public class Excel  {
 
     private int getStartRow( String rangeName) {
 
-        XSSFName namedRange = wb.getName( rangeName );
+        Name namedRange = wb.getName( rangeName );
         String formula =  namedRange.getRefersToFormula();
         String[] parts1 = formula.split("!",2);
         CellRangeAddress cra = getCellRangeAddress(parts1[1]);
@@ -234,7 +233,7 @@ public class Excel  {
     public void postExcelResults(HashMap<String, ExcelResult> results, int test) {
         log.info(new MyString("Info: Posting Excel results to results Workbook: ").toString());
         try {
-            XSSFSheet sheet = wb.getSheet( ATTENDANCE_TESTS_SHEET );
+            Sheet sheet = wb.getSheet( ATTENDANCE_TESTS_SHEET );
 
             int startRow = getStartRow( ATTENDANCE_TESTS_RANGE);
             int endRow = getEndRow( ATTENDANCE_TESTS_RANGE);
@@ -276,7 +275,7 @@ public class Excel  {
 
     }
 
-    public void writeExcelFile(XSSFWorkbook wb) {
+    public void writeExcelFile(Workbook wb) {
 
         try {
             FileOutputStream outputStream = new FileOutputStream(RESULTS_FOLDER + RESULTS_WB );
@@ -300,5 +299,15 @@ public class Excel  {
         int c1 = cr1.getCol() > cr2.getCol() ? cr2.getCol() : cr1.getCol();
         int c2 = cr1.getCol() > cr2.getCol() ? cr1.getCol() : cr2.getCol();
         return new CellRangeAddress(r1, r2, c1, c2);
+    }
+
+    void closeWorkbook() {
+        try {
+            Excel.wb.close();
+
+        } catch (IOException e) {
+            log.severe("Error: Closing Workbook");
+            System.exit(1);
+        }
     }
 }

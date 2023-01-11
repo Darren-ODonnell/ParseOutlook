@@ -1,9 +1,10 @@
 import Models.*;
 import lombok.CustomLog;
+import org.apache.poi.ss.usermodel.Workbook;
 
-import java.io.IOException;
 import java.util.*;
 import static Models.Util.*;
+import static Models.Util.type;
 
 @CustomLog
 public class Main {
@@ -11,17 +12,21 @@ public class Main {
     public static HashMap<String, Attendance> attendance;
     public static HashMap<String, ExcelResult> excelResults;
     public static HashMap<String, SpssResult> spssResults;
+    public static Excel excel = new Excel();
 
     public static void main(String[] args) {
         // util.java has all the filename definitions
-        setBasePath();
-        Excel excel = new Excel();
-        HashMap<String, List<EmailSubmission>> submissions;
-        HashMap<String, ZipSubmission> zipSubmissions;
 
         int test = 2;
+        runTests(test);
 
-        setBasePath();
+        ExcelWorkbook.closeWorkbook();
+
+    }
+
+    private static void runTests(int test) {
+        HashMap<String, List<EmailSubmission>> submissions;
+        HashMap<String, ZipSubmission> zipSubmissions;
         classlist = excel.getInfoviewList();
 
         switch(test) {
@@ -29,22 +34,19 @@ public class Main {
                 type = SPSS;
                 attendance = excel.getAttendance(SPSS_T1_ATT);
                 Outlook spssOutlookT1 = new Outlook(TESTS_FOLDER + SPSS_T1_EMAIL_PST);
-                submissions = spssOutlookT1.submissions;
                 Zip spssZipT1 = new Zip(TESTS_FOLDER + SPSS_T1_BRIGHTSPACE_ZIP, classlist);
-                zipSubmissions = spssZipT1.zipSubmissions;
-                spssResults = getSpssResults(submissions, zipSubmissions, attendance, classlist);
+                spssResults = getSpssResults(spssOutlookT1.submissions, spssZipT1.zipSubmissions, attendance, classlist);
                 excel.postSpssResults(spssResults, FIRST_TEST);
 
                 type = EXCEL;
                 attendance = excel.getAttendance(EXCEL_T1_ATT);
                 Outlook excelOutlookT1 = new Outlook(TESTS_FOLDER + EXCEL_T1_EMAIL_PST);
-                submissions = excelOutlookT1.submissions;
                 Zip excelZipT1 = new Zip(TESTS_FOLDER + EXCEL_T1_BRIGHTSPACE_ZIP, classlist);
-                zipSubmissions = excelZipT1.zipSubmissions;
-                excelResults = getExcelResults(submissions, zipSubmissions, attendance, classlist);
+                excelResults = getExcelResults( excelOutlookT1.submissions, excelZipT1.zipSubmissions, attendance, classlist);
                 excel.postExcelResults(excelResults, FIRST_TEST);
 
                 break;
+
             case SECOND_TEST:
                 type = SPSS;
                 attendance = excel.getAttendance(SPSS_T2_ATT);
@@ -62,20 +64,9 @@ public class Main {
 
                 break;
         }
-
-        closeWorkbook();
-
-        System.exit(0);
     }
 
-    private static void closeWorkbook() {
-        try {
-            Excel.wb.close();
-        } catch (IOException e) {
-            log.severe("Error: Closing Workbook");
-            System.exit(1);
-        }
-    }
+
 
     private static  HashMap<String, ExcelResult> getExcelResults(HashMap<String, List<EmailSubmission>> submissions,
                                                HashMap<String, ZipSubmission> zipSubmissions,
@@ -97,6 +88,7 @@ public class Main {
             attend =  (attendance.containsKey(studentNo)) ? attendance.get(studentNo).getAttendance() : 0;
             bsSubmissions = (submissions.containsKey(studentNo)) ? submissions.get(studentNo).size() : 0;
 
+            // check excel submission is made
             if(submissions.containsKey(studentNo)) {
                 EmailSubmission sub = submissions.get(studentNo).get(0);
                 filesSubmitted = sub.getQtyFiles();
@@ -107,7 +99,6 @@ public class Main {
 
             if (zipSubmissions.containsKey(studentNo.toLowerCase()))
                 bsSubmissions = (zipSubmissions.get(studentNo).getQtyBsSubmissions() == 0) ? 0 : 1;
-
 
             if (zipSubmissions.containsKey(studentNo.toLowerCase())) {
                 excelResult = ExcelResult.builder()
@@ -140,7 +131,7 @@ public class Main {
                                               HashMap<String, ZipSubmission> zipSubmissions,
                                               HashMap<String, Attendance> attendance,
                                               HashMap<String, Infoview> classlist) {
-        log.info(new MyString("Info: Building SPSS REsults for Excel upload :").toString());
+        log.info(new MyString("Info: Building SPSS Results for Excel upload :").toString());
         HashMap<String, SpssResult> results = new HashMap<>();
         for (Map.Entry<String, Infoview>  student : classlist.entrySet()) {
             int bsSub = 0;
