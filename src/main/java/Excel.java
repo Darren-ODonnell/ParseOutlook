@@ -179,7 +179,7 @@ public class Excel  {
             for ( int row = startRow; row < endRow; row ++ ) {
                 String studentNo = "";
                 Row currentRow = sheet.getRow(row);
-                System.out.println(row);
+
                 if(rowValid(sheet, row)) {
                     studentNo = currentRow.getCell(ATTENDANCE_TESTS_STUDENT_NO_COL).getStringCellValue().toLowerCase();
                     if(results.containsKey(studentNo)) {
@@ -246,7 +246,7 @@ public class Excel  {
             for ( int row = startRow-1; row < endRow; row++ ) {
                 String studentNo = "";
                 Row currentRow = sheet.getRow(row);
-                System.out.println(row);
+
                 if(rowValid(sheet, row)) {
                     studentNo = currentRow.getCell(ATTENDANCE_TESTS_STUDENT_NO_COL).getStringCellValue().toLowerCase();
                     if (results.containsKey(studentNo)) {
@@ -301,13 +301,4 @@ public class Excel  {
         return new CellRangeAddress(r1, r2, c1, c2);
     }
 
-    void closeWorkbook() {
-        try {
-            Excel.wb.close();
-
-        } catch (IOException e) {
-            log.severe("Error: Closing Workbook");
-            System.exit(1);
-        }
-    }
 }

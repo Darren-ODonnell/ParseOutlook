@@ -1,6 +1,5 @@
 import Models.*;
 import lombok.CustomLog;
-import org.apache.poi.ss.usermodel.Workbook;
 
 import java.util.*;
 import static Models.Util.*;
@@ -25,8 +24,6 @@ public class Main {
     }
 
     private static void runTests(int test) {
-        HashMap<String, List<EmailSubmission>> submissions;
-        HashMap<String, ZipSubmission> zipSubmissions;
         classlist = excel.getInfoviewList();
 
         switch(test) {
@@ -158,7 +155,6 @@ public class Main {
                 if (submissions.get(studentNo).size() != 0) {
                     sub = submissions.get(studentNo).get(0);
                     emSub = (submissions.get(studentNo).get(0).getQtyFiles() > 0) ? 1 : 0;
-
                     savSubE = sub.isSavSubmitted();
                     savSnoE = sub.isSnoSav();
                     spvSubE = sub.isSpvSubmitted();
@@ -178,6 +174,7 @@ public class Main {
                 filesB  = zSub.getQtyFiles();
             }
 
+            // combine the results above - picking the best from each
             SpssResult spssResult = SpssResult.builder()
                     .attendance(attendance.get(studentNo).getAttendance())
                     .brightspaceSubmission(bsSub)
